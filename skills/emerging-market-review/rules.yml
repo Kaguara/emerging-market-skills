@@ -1,0 +1,66 @@
+prefix: REVIEW
+
+rules:
+  - id: REVIEW-001
+    rule: Establish the target market, device tier, and network profile before reviewing.
+    kind: process
+    severity: critical
+    applies_to: [android, ios, web, backend, sms, ussd]
+    detect: |
+      A review that begins listing findings without stating who the product is
+      for. Generic advice that would apply identically to any codebase.
+    remedy: |
+      Ask, or state an assumption explicitly and proceed. "Assuming tier C
+      Android on congested 3G in Kenya" makes every subsequent finding
+      checkable. Without it the review is a style guide.
+
+  - id: REVIEW-002
+    rule: Every finding cites a rule ID, or is labelled as unsourced judgment.
+    kind: process
+    severity: critical
+    applies_to: [android, ios, web, backend, sms, ussd]
+    detect: |
+      Findings phrased as assertions with no rule reference and no indication of
+      whether they come from this repo's rules or from the reviewer's opinion.
+    remedy: |
+      Cite the ID — NET-003, SIZE-002 — or mark the finding `judgment` so the
+      reader knows it is not backed by the repo's evidence standard. Both are
+      legitimate; conflating them is not.
+
+  - id: REVIEW-003
+    rule: Locate every finding in the artifact before reporting it.
+    kind: process
+    severity: critical
+    applies_to: [android, ios, web, backend]
+    detect: |
+      Findings with no file path, line, or spec section. Plausible issues
+      inferred from the framework in use rather than read in the code.
+    remedy: |
+      Open the file and confirm. A review that reports what a Next.js app
+      usually gets wrong, rather than what this one does, wastes the reader's
+      time and costs the reviewer their credibility on the findings that were real.
+
+  - id: REVIEW-004
+    rule: Rank findings by user impact at the target tier, not by ease of fix.
+    kind: process
+    severity: warning
+    applies_to: [android, ios, web, backend, sms, ussd]
+    detect: |
+      A report ordered by file, by severity label alone, or by what is quickest
+      to change.
+    remedy: |
+      Lead with what breaks the product for the target user. A critical rule
+      violated on the signup path outranks three warnings in a settings screen,
+      regardless of how much easier the settings fixes are.
+
+  - id: REVIEW-005
+    rule: State what was not checked.
+    kind: process
+    severity: warning
+    applies_to: [android, ios, web, backend, sms, ussd]
+    detect: |
+      A report that reads as complete when whole dimensions were skipped for
+      lack of access — no build artifact, no analytics, no device.
+    remedy: |
+      Close with the gaps: which skills could not be applied, and what would be
+      needed to apply them. Silence about coverage reads as a clean bill of health.

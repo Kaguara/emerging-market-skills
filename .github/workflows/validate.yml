@@ -1,0 +1,49 @@
+name: validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  skills:
+    name: Skill spec
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # Frontmatter, rules schema, ID uniqueness and prefixing, evidence on
+      # critical rules, prose/rules table drift, and source key resolution.
+      - name: Validate skills
+        run: python3 tools/validate_skills.py
+
+  links:
+    name: Links
+    runs-on: ubuntu-latest
+    # Advisory only: external sites go down, rate-limit CI runners, and block
+    # datacentre IPs. A broken link should not stop a contributor from merging a
+    # good rule, but someone should see it.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check links
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: >-
+            --no-progress
+            --accept 200,206,429
+            --exclude-path node_modules
+            './**/*.md'
+          fail: true

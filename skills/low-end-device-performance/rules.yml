@@ -1,0 +1,131 @@
+prefix: PERF
+
+rules:
+  - id: PERF-001
+    rule: Name a reference device at tier C and make it the definition of "works".
+    severity: critical
+    applies_to: [android, ios, web]
+    detect: |
+      No reference device in the repo. Acceptance testing performed on whatever
+      handset the engineer owns.
+    remedy: |
+      Pick a specific entry-level device — model, RAM, Android version — write it
+      into the repo, and keep at least one on the team's desk. "Works" means
+      works there. See docs/EVIDENCE.md for the tier definitions.
+    evidence:
+      - tier: field
+        source: gethomespace — Kenya/US, 2020–2022
+        observation: >
+          Flows that were fluid on the development handset were unusable on the
+          devices field agents actually carried. Nothing surfaced this until a
+          tier C device was part of the acceptance loop.
+
+  - id: PERF-002
+    rule: Assume the process will be killed at any moment and restore state on return.
+    severity: critical
+    applies_to: [android, ios]
+    detect: |
+      Multi-step flows holding progress only in memory. No saved instance state,
+      no persisted draft. Backgrounding the app loses the user's work.
+    remedy: |
+      Persist progress at each step, restore on launch, and test by killing the
+      process mid-flow. On a device with 1–2GB of RAM, backgrounding your app
+      for thirty seconds is frequently fatal to it.
+    evidence:
+      - tier: vendor
+        source: android-go
+      - tier: field
+        source: gethomespace — Kenya/US, 2020–2022
+        observation: >
+          Long verification forms were lost whenever the user switched away to
+          check an SMS, which the flow itself had asked them to do.
+
+  - id: PERF-003
+    rule: Bound every in-memory cache, especially image caches.
+    severity: critical
+    applies_to: [android, ios, web]
+    detect: |
+      Caches keyed by id with no ceiling and no eviction. Full-resolution bitmaps
+      retained for off-screen items.
+    remedy: |
+      Set an explicit ceiling as a fraction of available heap, evict least
+      recently used, and downsample images to the size they are drawn at. Out-of
+      -memory kills present to the user as the app closing itself for no reason.
+    evidence:
+      - tier: vendor
+        source: android-go
+
+  - id: PERF-004
+    rule: Keep long tasks off the main thread; never block input for more than 200ms.
+    severity: warning
+    applies_to: [android, ios, web]
+    detect: |
+      Parsing, sorting, crypto, image decoding, or layout of large lists on the
+      UI thread. Long-task entries in a performance trace on the reference device.
+    remedy: |
+      Move work to a worker, background dispatcher, or the server. Chunk what
+      cannot move. A tier C CPU is roughly a quarter as fast as a current
+      flagship, so a 50ms task on your desk is a visible freeze on theirs.
+    evidence:
+      - tier: vendor
+        source: web-vitals
+
+  - id: PERF-005
+    rule: Recycle or virtualise any list that can exceed one screen.
+    severity: warning
+    applies_to: [android, ios, web]
+    detect: |
+      Mapping an entire collection to view components. Memory growth proportional
+      to result-set size rather than to viewport size.
+    remedy: |
+      Use RecyclerView, a virtualised list, or windowed rendering, and page the
+      data behind it. Memory should be a function of what is visible, not of
+      what was returned.
+
+  - id: PERF-006
+    rule: Precompute on the server what the device would otherwise compute.
+    severity: warning
+    applies_to: [android, ios, web, backend]
+    detect: |
+      Ranking, aggregation, filtering, or template assembly performed on device
+      over a large payload that was shipped only to be reduced.
+    remedy: |
+      Do it server-side and send the result. This trades bytes for CPU, which is
+      the right trade when the payload shrinks, and the wrong one when it grows —
+      check against payload-budgets before assuming.
+
+  - id: PERF-007
+    rule: Cap background work, wake locks, and polling.
+    severity: warning
+    applies_to: [android, ios]
+    detect: |
+      Periodic sync at short intervals, foreground services with no user-visible
+      justification, wake locks held across network calls.
+    remedy: |
+      Batch background work, defer it to charging or unmetered windows, and let
+      the platform scheduler decide when. An ageing battery at 60% of its
+      original capacity makes yours the app the user blames and uninstalls.
+
+  - id: PERF-008
+    rule: Animate only compositor-friendly properties, and honour reduced motion.
+    severity: advisory
+    applies_to: [android, ios, web]
+    detect: |
+      Animating width, height, top, or left. Continuous animation running while
+      off-screen. No `prefers-reduced-motion` handling.
+    remedy: |
+      Animate transform and opacity only, pause off-screen animation, and drop
+      to instant transitions under reduced motion. Dropped frames read as a
+      broken app more reliably than slow ones read as a slow app.
+
+  - id: PERF-009
+    rule: Give any on-device inference or heavy computation a server or static fallback.
+    severity: advisory
+    applies_to: [android, ios, web]
+    detect: |
+      An on-device model, client-side video processing, or heavy crypto with no
+      alternative path when the device cannot carry it.
+    remedy: |
+      Detect capability, fall back to a server call, and fall back again to a
+      static default when there is no network. A feature that only works on
+      tier A devices should degrade, not disappear without explanation.

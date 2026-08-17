@@ -1,0 +1,148 @@
+prefix: SIZE
+
+rules:
+  - id: SIZE-001
+    rule: Declare a byte budget per platform before writing the feature.
+    severity: critical
+    applies_to: [android, ios, web]
+    detect: |
+      No stated budget anywhere in the repo or the spec. Size is discussed only
+      after someone notices the app got big.
+    remedy: |
+      Write the number down in the repo — initial download, first-load JavaScript,
+      largest image, total first-view transfer. A budget decided after the code
+      exists is not a budget, it is a description.
+    evidence:
+      - tier: field
+        source: Smile Identity — pan-African, 2017–2020
+        observation: >
+          Integrating partners evaluated the mobile SDK on the megabytes it added
+          to their own app before they evaluated what it did. Size was a gating
+          criterion in the procurement conversation, not a later optimisation.
+
+  - id: SIZE-002
+    rule: Keep the Android initial download at or below 15MB.
+    severity: critical
+    applies_to: [android]
+    detect: |
+      A universal APK, or an app bundle whose largest device-configuration split
+      exceeds 15MB.
+    remedy: |
+      Ship an Android App Bundle so Play generates per-device splits, move
+      secondary features to on-demand modules, and drop unused density and ABI
+      variants. Verify with bundletool against a tier C device configuration.
+    evidence:
+      - tier: vendor
+        source: android-app-bundle
+      - tier: published
+        source: google-nbu-new-internet-users
+
+  - id: SIZE-003
+    rule: Budgets are enforced by CI and fail the build when exceeded.
+    severity: critical
+    applies_to: [android, ios, web]
+    detect: |
+      A budget documented in a README or a design doc with no automated check.
+      No size number in the CI output.
+    remedy: |
+      Add a size check to the pipeline that compares the built artifact against
+      the declared budget and exits non-zero. Print the number on every build so
+      the trend is visible before it is a problem.
+    evidence:
+      - tier: field
+        source: Juvo Mobile — 6 markets, Central & South America, 2015–2020
+        observation: >
+          Size regressions arrived a few hundred kilobytes at a time, each one
+          individually reasonable. Nothing in review catches that; only a machine
+          comparing against a number does.
+
+  - id: SIZE-004
+    rule: Measure the cold-cache first visit on a tier C device, not a warm reload.
+    severity: warning
+    applies_to: [android, ios, web]
+    detect: |
+      Performance numbers quoted from a developer machine, a warm cache, or a
+      flagship test device.
+    remedy: |
+      Measure with an empty cache, on a throttled link, on the device tier you
+      are actually targeting. The first visit is the only one a user who
+      abandons will ever have.
+
+  - id: SIZE-005
+    rule: Serve images sized to the rendered box, in a modern format, responsively.
+    severity: warning
+    applies_to: [android, ios, web]
+    detect: |
+      A single full-resolution asset served to every device. JPEG or PNG where
+      WebP or AVIF is supported. No `srcset`, `sizes`, or equivalent.
+    remedy: |
+      Generate width variants, serve WebP or AVIF with a fallback, set explicit
+      dimensions to prevent layout shift, and lazy-load anything below the fold.
+      Images are usually the largest line in the budget and the easiest to cut.
+
+  - id: SIZE-006
+    rule: Cap first-load JavaScript on the critical path at 200KB compressed.
+    severity: warning
+    applies_to: [web]
+    detect: |
+      A first-load bundle above 200KB after compression, or a route that pulls
+      the entire application into the initial chunk.
+    remedy: |
+      Split by route, defer anything not needed for first interaction, and audit
+      the dependency tree for libraries pulled in whole for one function. The
+      number is a house default rather than a law of physics; what matters is
+      that some number is chosen, enforced, and defended in review.
+
+  - id: SIZE-007
+    rule: Every third-party script has a named owner and counts against the budget.
+    severity: warning
+    applies_to: [web, android, ios]
+    detect: |
+      Analytics, tag managers, chat widgets, and A/B frameworks accumulating with
+      no record of who added them, why, or what they cost.
+    remedy: |
+      Keep a list with owner, purpose, and measured byte cost. Review it on a
+      schedule and delete what nobody defends. Third-party bytes are the ones
+      most likely to be added without anyone weighing the tradeoff.
+
+  - id: SIZE-008
+    rule: Load secondary features on demand rather than at install or first paint.
+    severity: warning
+    applies_to: [android, ios, web]
+    detect: |
+      Onboarding-only assets, admin screens, or rarely used flows shipped in the
+      initial download.
+    remedy: |
+      Use dynamic feature modules on Android and route-level code splitting on
+      web. The test is whether a first-time user reaches the feature in their
+      first session; if not, it does not belong in the initial download.
+    evidence:
+      - tier: vendor
+        source: android-app-bundle
+
+  - id: SIZE-009
+    rule: Never block first paint on a web font.
+    severity: warning
+    applies_to: [web]
+    detect: |
+      Font files loaded synchronously with no `font-display`, or multiple
+      weights and scripts fetched before any text renders.
+    remedy: |
+      Use `font-display: swap`, subset to the glyphs actually used, and preload
+      at most one file. Text that arrives late is a slow page; text that never
+      arrives because the font request hung is a blank one.
+
+  - id: SIZE-010
+    rule: Budget the installed storage footprint, not only the download.
+    severity: advisory
+    applies_to: [android, ios]
+    detect: |
+      Unbounded local caches, downloaded media with no eviction policy, and
+      analytics queues that grow without a ceiling.
+    remedy: |
+      Set a cache ceiling with LRU eviction, expose the number in settings, and
+      make it clearable. On a device with 16GB of storage that is permanently
+      near full, the largest app is the one that gets uninstalled.
+    evidence:
+      - tier: vendor
+        source: android-go

@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+title: "emerging-market-skills: agent skills for building software under emerging-market constraints"
+message: "If you use these skills in research or in a published product, please cite them."
+type: software
+authors:
+  - family-names: Kaguara
+    given-names: Antony Muroki
+    orcid: ""
+repository-code: "https://github.com/Kaguara/emerging-market-skills"
+abstract: >-
+  A set of AI agent skills encoding engineering constraints for products built
+  for emerging-market users: intermittent and expensive connectivity, entry-level
+  devices, per-action integration costs, and interfaces used by people with
+  varying literacy and prior exposure to software. Each skill pairs prose
+  guidance with machine-readable rules and runnable validators.
+keywords:
+  - emerging markets
+  - offline-first
+  - mobile development
+  - agent skills
+  - performance budgets
+  - internationalization
+license: MIT
+version: 0.1.0

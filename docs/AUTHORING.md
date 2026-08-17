@@ -101,8 +101,25 @@ Field reference:
 | `applies_to` | yes | Any of `android`, `ios`, `web`, `backend`, `ussd`, `sms` |
 | `detect` | yes | What a reviewer or script looks for |
 | `remedy` | yes | The specific fix, naming the framework where relevant |
+| `kind` | no | `empirical` (default) or `process`. See below. |
 | `evidence` | yes for `critical` | See `EVIDENCE.md` |
 | `superseded_by` | no | Set when a rule is replaced; never delete a rule |
+
+### Kind
+
+Almost every rule is `empirical`: it claims something about how devices,
+networks, or people behave, and must be able to back that claim.
+
+`kind: process` is for rules that govern how we work rather than how the world
+behaves — the rules in `emerging-market-review` about establishing the target
+before reviewing, or citing a rule ID with every finding. They make no empirical
+claim, so there is nothing for them to cite, and they are exempt from the
+evidence requirement on `critical`.
+
+Do not reach for `process` to get a rule past the validator. If the rule asserts
+that something is true of users or devices, it is empirical, and the honest move
+when you cannot source it is `warning` with a `TODO` explaining what evidence
+would promote it.
 
 ### Severity
 

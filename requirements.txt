@@ -1,0 +1,4 @@
+# Everything needed to run tools/validate_skills.py.
+# Deliberately one dependency — contributors should not need an environment
+# to check their own work.
+PyYAML>=6.0

@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Question or discussion
+    url: https://github.com/Kaguara/emerging-market-skills/discussions
+    about: Ask how to apply a skill, or talk through a design problem in your own product.
+  - name: Security report
+    url: https://github.com/Kaguara/emerging-market-skills/security/advisories/new
+    about: Report a vulnerability privately. Do not open a public issue.

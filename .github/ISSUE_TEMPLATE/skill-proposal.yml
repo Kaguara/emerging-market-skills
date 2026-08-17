@@ -1,0 +1,56 @@
+name: Skill proposal
+description: Propose a new skill. Open this before writing one — new skills start as issues, not pull requests.
+title: "[skill] "
+labels: ["skill-proposal"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        New skills start here so we can agree the scope and the ID prefix before
+        you spend a weekend writing one. Read `docs/AUTHORING.md` first.
+
+  - type: input
+    id: name
+    attributes:
+      label: Proposed name
+      description: kebab-case, and it will also be the directory name.
+      placeholder: sms-and-ussd-flows
+    validations:
+      required: true
+
+  - type: input
+    id: prefix
+    attributes:
+      label: Proposed rule ID prefix
+      description: Uppercase, globally unique. Check the existing skills first.
+      placeholder: USSD
+    validations:
+      required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: What question does this skill answer?
+      description: One sentence. If it overlaps an existing skill, say which and why it should be separate rather than a section there.
+    validations:
+      required: true
+
+  - type: textarea
+    id: rules
+    attributes:
+      label: Three rules it would contain
+      description: Sketch them. One imperative, testable sentence each, with the severity you would give them and where the evidence would come from.
+      placeholder: |
+        1. ... — critical, field evidence from ...
+        2. ... — warning, vendor docs at ...
+        3. ... — advisory, judgment
+    validations:
+      required: true
+
+  - type: textarea
+    id: experience
+    attributes:
+      label: Your experience with this
+      description: Have you shipped something in this area? Which markets? This is not a gate — it tells us whether the rules will come with field evidence or need sourcing.
+    validations:
+      required: false

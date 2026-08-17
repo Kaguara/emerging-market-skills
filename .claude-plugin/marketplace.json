@@ -1,0 +1,32 @@
+{
+  "name": "emerging-market-skills",
+  "owner": {
+    "name": "Antony Kaguara",
+    "url": "https://github.com/Kaguara"
+  },
+  "metadata": {
+    "description": "Agent skills for building software that works on the other five billion phones.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "emerging-market-skills",
+      "source": "./",
+      "description": "Engineering constraints for emerging-market products: network resilience, payload budgets, low-end device performance, integration cost modeling, and localization for varying literacy.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Antony Kaguara",
+        "url": "https://github.com/Kaguara"
+      },
+      "homepage": "https://github.com/Kaguara/emerging-market-skills",
+      "license": "MIT",
+      "keywords": [
+        "emerging-markets",
+        "offline-first",
+        "performance",
+        "mobile",
+        "internationalization"
+      ]
+    }
+  ]
+}

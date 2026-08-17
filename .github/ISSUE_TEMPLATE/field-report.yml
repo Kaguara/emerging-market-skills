@@ -1,0 +1,61 @@
+name: Field report
+description: You observed something in a real market that a rule gets wrong, or that no rule covers yet.
+title: "[field] "
+labels: ["field-report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This is the most valuable kind of issue this project receives.
+
+        A rule that holds in Nairobi and fails in Jakarta is not a broken rule —
+        it is a rule with an undiscovered boundary, and naming that boundary
+        makes it better than it was. You do not need to propose a fix.
+
+  - type: input
+    id: rule
+    attributes:
+      label: Rule ID
+      description: The rule this concerns, if there is one. Leave blank if nothing covers it yet.
+      placeholder: NET-007
+    validations:
+      required: false
+
+  - type: input
+    id: market
+    attributes:
+      label: Market
+      description: Country or region, and the network operator if it is relevant. "Emerging markets" is not a market.
+      placeholder: Kenya — Safaricom, Nairobi and Kisumu
+    validations:
+      required: true
+
+  - type: dropdown
+    id: tier
+    attributes:
+      label: Device tier
+      description: See docs/EVIDENCE.md. Pick the closest.
+      options:
+        - "A — recent mid-range, 6-8GB RAM, reliable LTE"
+        - "B — ageing mid-range, 3-4GB RAM"
+        - "C — entry-level / Android Go, 1-2GB RAM, congested 3G"
+        - "D — feature phone / KaiOS, USSD and SMS"
+        - "Mixed or unknown"
+    validations:
+      required: true
+
+  - type: textarea
+    id: observation
+    attributes:
+      label: What you observed
+      description: What happened, and how you know. Measurements, logs, and screenshots all help. An honest qualitative account is worth more than an invented number.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What the rule predicts
+      description: If this concerns an existing rule, what does it say should have happened?
+    validations:
+      required: false

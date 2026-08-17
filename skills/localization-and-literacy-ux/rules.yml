@@ -1,0 +1,140 @@
+prefix: LOC
+
+rules:
+  - id: LOC-001
+    rule: Text containers stretch; never fix the height or width of a box holding a string.
+    severity: critical
+    applies_to: [android, ios, web]
+    detect: |
+      Fixed-height buttons, cards, or nav items sized to the English string.
+      `overflow: hidden`, ellipsis, or `maxLines` used as the layout strategy
+      rather than as a deliberate truncation of user content.
+    remedy: |
+      Size containers from their content with padding, allow wrapping, and test
+      at the expansion factor for your longest target language. Truncation is
+      acceptable for user-generated content and never for interface labels.
+    evidence:
+      - tier: vendor
+        source: w3c-text-size-translation
+
+  - id: LOC-002
+    rule: Build sentences with a message formatter, never string concatenation.
+    severity: critical
+    applies_to: [android, ios, web, backend]
+    detect: |
+      Strings assembled from fragments — `"You have " + n + " items"` — or
+      separate singular and plural keys selected with an `if`.
+    remedy: |
+      Use ICU MessageFormat with named arguments and plural categories. Word
+      order, plural rules, and grammatical gender vary in ways concatenation
+      cannot express; several languages have plural categories English lacks.
+    evidence:
+      - tier: vendor
+        source: icu-message-format
+
+  - id: LOC-003
+    rule: Format numbers, dates, currency, and names with locale data, never by hand.
+    severity: warning
+    applies_to: [android, ios, web, backend]
+    detect: |
+      Hand-written date formats, hardcoded thousands separators or currency
+      symbol placement, single `name` fields assuming a given/family order.
+    remedy: |
+      Use the platform's CLDR-backed formatters. Store the canonical value and
+      format at the edge. Decimal separators, digit grouping, and symbol
+      position all differ between markets that share a language.
+    evidence:
+      - tier: vendor
+        source: unicode-cldr
+
+  - id: LOC-004
+    rule: Run pseudo-localization in CI at the expansion factor of your longest language.
+    severity: warning
+    applies_to: [android, ios, web]
+    detect: |
+      Layout verified only in the source language. No pseudo-locale build. Text
+      overflow discovered by translators or by users.
+    remedy: |
+      Generate a pseudo-locale that expands strings by at least 40%, wraps them
+      in markers, and includes accented and non-Latin glyphs. Screenshot the
+      key flows in CI. Expansion is largest on short strings, which is exactly
+      what interface labels are.
+    evidence:
+      - tier: vendor
+        source: w3c-text-size-translation
+
+  - id: LOC-005
+    rule: Never let an icon carry meaning on its own.
+    severity: warning
+    applies_to: [android, ios, web]
+    detect: |
+      Icon-only navigation or actions. Meaning conveyed by a glyph whose
+      referent is a physical object the user may never have used — floppy disk,
+      magnifying glass, hamburger.
+    remedy: |
+      Pair every icon with a text label. Icon vocabulary is learned from prior
+      software, not innate, and a first-time smartphone user has not learned it.
+    evidence:
+      - tier: published
+        source: google-nbu-new-internet-users
+
+  - id: LOC-006
+    rule: Use logical layout properties so right-to-left works without a second layout.
+    severity: warning
+    applies_to: [android, ios, web]
+    detect: |
+      `margin-left`, `padding-right`, `left:`, or hardcoded `flex-direction: row`
+      in a product with any RTL target. Directional icons that do not mirror.
+    remedy: |
+      Use inline-start and inline-end properties, `dir="auto"` on user content,
+      and mirror directional iconography. Retrofitting RTL after launch is a
+      rewrite of the layout layer; doing it from the start costs nothing.
+
+  - id: LOC-007
+    rule: Every critical flow is completable without reading a paragraph.
+    severity: warning
+    applies_to: [android, ios, web, ussd]
+    detect: |
+      Onboarding, consent, or error recovery that depends on prose. Instructions
+      longer than one line at a decision point.
+    remedy: |
+      Carry the flow on short labels, sequence, and imagery, with prose as
+      support rather than as the mechanism. Assume the reader is literate in a
+      language that is not the interface language, and is reading on a small
+      screen in bright sunlight.
+
+  - id: LOC-008
+    rule: Language is an explicit, persisted user choice, not an inference.
+    severity: warning
+    applies_to: [android, ios, web]
+    detect: |
+      Language derived solely from device locale or IP geolocation, with no way
+      to change it, or a choice that resets on reinstall or on a new device.
+    remedy: |
+      Offer the choice early, in the language names themselves, persist it to
+      the account rather than the device, and let it be changed from settings.
+      Device locale frequently reflects who set the phone up, not who uses it.
+
+  - id: LOC-009
+    rule: Do not hardcode the shape of names, addresses, or phone numbers.
+    severity: warning
+    applies_to: [android, ios, web, backend]
+    detect: |
+      Separate required first and last name fields, address forms modelled on
+      one country's postal system, phone inputs assuming a fixed national length.
+    remedy: |
+      One full-name field, address forms that vary by country, and phone input
+      that accepts and normalises to E.164. Many addresses are descriptive
+      rather than postal, and a required postcode blocks real users.
+
+  - id: LOC-010
+    rule: Error messages name the cause and the next action, in plain translated language.
+    severity: advisory
+    applies_to: [android, ios, web]
+    detect: |
+      Error codes, untranslated strings from a backend or vendor SDK, or copy
+      that says something failed without saying what to do next.
+    remedy: |
+      Map every user-visible failure to a translated message with a concrete
+      next step. Untranslated vendor errors reaching the interface is the most
+      common leak, and it surfaces at the least recoverable moment.

@@ -1,0 +1,19 @@
+{
+  "name": "emerging-market-skills",
+  "description": "Agent skills for building software that works on the other five billion phones. Skills in skills/ are discovered automatically.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Antony Kaguara",
+    "url": "https://github.com/Kaguara"
+  },
+  "homepage": "https://github.com/Kaguara/emerging-market-skills",
+  "repository": "https://github.com/Kaguara/emerging-market-skills",
+  "license": "MIT",
+  "keywords": [
+    "emerging-markets",
+    "offline-first",
+    "performance",
+    "mobile",
+    "internationalization"
+  ]
+}

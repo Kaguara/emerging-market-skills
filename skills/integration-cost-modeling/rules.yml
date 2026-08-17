@@ -1,0 +1,139 @@
+prefix: COST
+
+rules:
+  - id: COST-001
+    rule: Every user-facing action has a stated marginal cost before it is built.
+    severity: critical
+    applies_to: [backend, web, android, ios, sms, ussd]
+    detect: |
+      A feature spec with no cost-per-action line. Nobody in the review can say
+      what one signup, one notification, or one AI response costs to serve.
+    remedy: |
+      Write the arithmetic into the spec: which paid calls fire, how many times,
+      at what unit price, including retries and failures. A feature whose cost
+      per action is unknown is a feature whose cost per action is unbounded.
+    evidence:
+      - tier: field
+        source: Juvo Mobile — 6 markets, Central & South America, 2015–2020
+        observation: >
+          Per-message and per-API-call prices varied by market to the point that
+          a flow which was economic in one country was not viable in another.
+          Unit cost had to be a design input, not a finance report.
+
+  - id: COST-002
+    rule: Choose the delivery channel by cost per delivered outcome, not by convenience.
+    severity: critical
+    applies_to: [backend, sms, ussd, android, ios]
+    detect: |
+      SMS used for messages a push notification would carry. Push assumed to
+      reach users who have no data session open. No comparison recorded.
+    remedy: |
+      Compare channels on cost per *delivered and acted-upon* message, not cost
+      per send. Push is nearly free and silently undelivered on a device with no
+      data; SMS always arrives and always costs; USSD reaches feature phones and
+      is session-bound. Pick per message class and write down why.
+    evidence:
+      - tier: field
+        source: gethomespace — Kenya/US, 2020–2022
+        observation: >
+          An SMS chat engine reached users that an app-based flow could not,
+          at a per-message cost that only made sense for high-intent moments.
+          Routing low-intent notifications through it would have been ruinous.
+
+  - id: COST-003
+    rule: Rate-limit and de-duplicate every paid outbound message.
+    # TODO(antony): this reads as critical, but promoting it needs a real field
+    # observation — an OTP resend incident, a billing spike, a market where the
+    # cap mattered. Held at warning until that exists rather than inventing one.
+    severity: warning
+    applies_to: [backend, sms]
+    detect: |
+      OTP or notification endpoints with no per-recipient throttle, no cooldown,
+      and no cap. Retry logic that re-sends rather than re-delivering.
+    remedy: |
+      Throttle per recipient and per hour, enforce a cooldown before resend,
+      cap daily volume per account, and alert on anomalies. An unthrottled paid
+      send endpoint is a billing incident waiting for someone to find it.
+
+  - id: COST-004
+    rule: Cap AI and inference spend per session with a hard ceiling and a fallback.
+    # TODO(antony): Wowzi runs AI features in production — if there is a real
+    # token-spend or provider-outage story there, this becomes critical with
+    # field evidence attached.
+    severity: warning
+    applies_to: [backend, web, android, ios]
+    detect: |
+      Model calls with no token ceiling, no per-user budget, and no path that
+      still works when the budget is exhausted or the provider is down.
+    remedy: |
+      Set max tokens per call and per session, cache aggressively on semantic
+      keys, choose the smallest model that passes the quality bar, and define
+      what the feature does when the budget is spent. Degrade to a deterministic
+      path; do not show an error where a reasonable default exists.
+
+  - id: COST-005
+    rule: Never spend the user's data allowance on telemetry or prefetch you chose.
+    severity: warning
+    applies_to: [android, ios, web]
+    detect: |
+      Analytics batches, crash payloads, or prefetch running on metered networks
+      with no ceiling. No stated per-session background data figure.
+    remedy: |
+      Batch and compress telemetry, defer it to unmetered networks, sample on
+      tier C, and know the per-session byte cost. On a prepaid bundle this is
+      money taken from someone who did not agree to spend it.
+
+  - id: COST-006
+    rule: Cache and batch third-party calls against a known per-call price.
+    severity: warning
+    applies_to: [backend]
+    detect: |
+      Identity, geocoding, credit, or enrichment lookups issued per request with
+      no cache. The same input billed repeatedly within minutes.
+    remedy: |
+      Cache on the natural key with a deliberate TTL, batch where the API allows,
+      and collapse duplicate in-flight requests. Verification results in
+      particular are stable for months and are frequently re-purchased daily.
+    evidence:
+      - tier: field
+        source: Smile Identity — pan-African, 2017–2020
+        observation: >
+          Integrators commonly re-ran identity verifications they had already
+          paid for, because no cache sat between the application and the API.
+
+  - id: COST-007
+    rule: Decide fail-open or fail-closed for every paid dependency, in writing.
+    severity: warning
+    applies_to: [backend]
+    detect: |
+      A third-party outage takes down a user flow, or silently waves users
+      through a check the product depends on. No documented decision either way.
+    remedy: |
+      Choose per dependency and record it: fail-closed for anything protecting
+      money or identity, fail-open with a queued retry for enrichment and
+      convenience. Timeouts must be short enough that the choice is reached
+      before the user leaves.
+
+  - id: COST-008
+    rule: Serve from a region near the user and count egress.
+    severity: warning
+    applies_to: [backend, web]
+    detect: |
+      A single deployment region on another continent. Media served from origin
+      with no CDN. Egress absent from the cost model.
+    remedy: |
+      Put static assets on a CDN with local presence, keep the chatty path close
+      to the user, and include egress in the per-action arithmetic. Round-trip
+      latency is also a cost — it is paid in abandonment rather than in currency.
+
+  - id: COST-009
+    rule: Re-check unit costs against real usage within a month of launch.
+    severity: warning
+    applies_to: [backend]
+    detect: |
+      Cost model written during design and never revisited. No dashboard for
+      cost per active user.
+    remedy: |
+      Instrument the paid calls, compare actual against modelled, and treat a
+      material gap as a bug. Usage patterns in a new market rarely match the
+      assumptions, and retry behaviour on poor connections is the usual reason.
