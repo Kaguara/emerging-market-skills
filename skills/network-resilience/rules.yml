@@ -1,0 +1,162 @@
+prefix: NET
+
+rules:
+  - id: NET-001
+    rule: Render from local state first; never block first paint on a network call.
+    severity: critical
+    applies_to: [android, ios, web]
+    detect: |
+      The initial screen shows a spinner, skeleton, or empty state whose only exit
+      is a successful response. Server-rendered pages with no cached fallback.
+    remedy: |
+      Persist the last known good response and render it immediately, with a quiet
+      freshness indicator. Revalidate in the background. The network changes what
+      is on screen; it never decides whether anything is on screen.
+    evidence:
+      - tier: field
+        source: Juvo Mobile — 6 markets, Central & South America, 2015–2020
+        observation: >
+          On congested cells the request neither succeeded nor failed for tens of
+          seconds. Screens gated on first response read as a broken app, and users
+          force-quit rather than wait.
+
+  - id: NET-002
+    rule: Queue every state-changing request durably before attempting it.
+    severity: critical
+    applies_to: [android, ios, web]
+    detect: |
+      A handler calls the API directly and holds the user's intent only in memory
+      or in component state. Killing the app mid-request loses the action.
+    remedy: |
+      Write the intent to durable local storage, acknowledge it in the UI, and
+      drain the queue from a background worker — WorkManager on Android,
+      Background Sync or a persisted outbox on web.
+    evidence:
+      - tier: vendor
+        source: android-workmanager
+      - tier: field
+        source: gethomespace — Kenya/US, 2020–2022
+        observation: >
+          Field agents submitted verifications from sites with no usable signal.
+          An in-memory retry lost the submission whenever Android reclaimed the
+          process, which on 1–2GB devices was routine.
+
+  - id: NET-003
+    rule: Every state-changing request carries a client-generated idempotency key.
+    severity: critical
+    applies_to: [android, ios, web, backend, sms]
+    detect: |
+      POST handlers with no idempotency key in the header or body, and no
+      server-side dedupe window keyed on it.
+    remedy: |
+      Generate a UUID at intent time — not at send time — persist it with the
+      queued request, and reuse it across every retry. The server dedupes on it
+      for at least 24 hours and returns the original result.
+    evidence:
+      - tier: field
+        source: Juvo Mobile — 6 markets, Central & South America, 2015–2020
+        observation: >
+          Ambiguous timeouts caused manual user retries. Without a stable key the
+          duplicate was indistinguishable from a second legitimate action, and the
+          reconciliation cost fell on support.
+
+  - id: NET-004
+    rule: Pending, queued, and failed states are visible and honest in the UI.
+    severity: critical
+    applies_to: [android, ios, web]
+    detect: |
+      Optimistic UI that shows an action as complete while it is still queued, or
+      a failure that surfaces only as the state silently reverting.
+    remedy: |
+      Three distinct visual states — queued, sent, confirmed — and a failure state
+      that names the cause and the next action. Optimism about rendering speed is
+      good; optimism about whether money moved is not.
+    evidence:
+      - tier: field
+        source: IBM Research Africa — Kenya, 2013–2014
+        observation: >
+          In a wallet, a balance shown without provenance is worse than no balance.
+          Users who could not tell cached from confirmed stopped trusting both.
+
+  - id: NET-005
+    rule: Set explicit request timeouts sized for the target network, not the default.
+    severity: warning
+    applies_to: [android, ios, web, backend]
+    detect: |
+      `fetch` with no `AbortSignal.timeout`, or client defaults inherited from a
+      library tuned for broadband.
+    remedy: |
+      Set timeouts per class of request — short for interactive reads that have a
+      cached fallback, long and patient for queued writes that must eventually
+      land. A 30-second write on a saturated 3G cell is normal, not an error.
+
+  - id: NET-006
+    rule: Retry with capped exponential backoff and jitter; never tight-loop.
+    severity: warning
+    applies_to: [android, ios, web]
+    detect: |
+      Fixed-interval retries, unbounded retry counts, or every queued item
+      retrying simultaneously on the connectivity-restored event.
+    remedy: |
+      Exponential backoff with full jitter, a cap, and a dead-letter state after
+      the cap. Synchronised retries across a user base flood the same congested
+      cell that caused the failure.
+    evidence:
+      - tier: vendor
+        source: aws-backoff-jitter
+
+  - id: NET-007
+    rule: Treat the connectivity flag as a hint, not a fact.
+    severity: warning
+    applies_to: [android, ios, web]
+    detect: |
+      Logic branching solely on `navigator.onLine` or an OS connectivity callback.
+    remedy: |
+      Confirm with a cheap authenticated round trip before treating the network as
+      usable. Captive portals, exhausted data bundles, and zero-rated walls all
+      report a live connection that carries no traffic to your origin.
+    evidence:
+      - tier: field
+        source: Smile Identity — pan-African, 2017–2020
+        observation: >
+          Depleted prepaid bundles commonly resolve DNS and terminate TLS at an
+          operator portal. The device reports online; every API call returns an
+          operator upsell page.
+
+  - id: NET-008
+    rule: Honour metered-connection and data-saver signals.
+    severity: warning
+    applies_to: [android, web]
+    detect: |
+      Prefetching, video autoplay, background sync, or full-resolution images with
+      no check of `Save-Data`, `NetworkInfo.isActiveNetworkMetered`, or the
+      effective connection type.
+    remedy: |
+      Drop to low-resolution assets, disable prefetch and autoplay, and defer
+      non-urgent sync to unmetered networks. On a prepaid bundle, background data
+      you did not authorise is money the user did not agree to spend.
+
+  - id: NET-009
+    rule: Declare a conflict-resolution policy for every entity that syncs.
+    severity: warning
+    applies_to: [android, ios, web, backend]
+    detect: |
+      Offline writes with no documented policy — last-write-wins applied by
+      accident, via whichever request happened to arrive second.
+    remedy: |
+      Choose per entity and write it down: server-authoritative for balances and
+      anything monetary, last-write-wins with a vector clock for user preferences,
+      explicit merge UI for user-authored content. Never LWW on money.
+
+  - id: NET-010
+    rule: Batch and compress; minimise round trips over payload elegance.
+    severity: advisory
+    applies_to: [android, ios, web, backend]
+    detect: |
+      A screen that issues six sequential dependent requests, or uncompressed JSON
+      over a link with 400ms+ RTT.
+    remedy: |
+      Collapse into one request per screen where the backend allows it. On a
+      high-latency link, round trips dominate; six 40KB requests are worse than
+      one 240KB request. Enable compression, and consider a binary protocol where
+      volume justifies the tooling cost.
