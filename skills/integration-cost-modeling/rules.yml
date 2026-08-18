@@ -96,7 +96,7 @@ rules:
       particular are stable for months and are frequently re-purchased daily.
     evidence:
       - tier: field
-        source: Smile Identity — pan-African, 2017–2020
+        source: Smile Identity — pan-African, 2017–2021
         observation: >
           Integrators commonly re-ran identity verifications they had already
           paid for, because no cache sat between the application and the API.

@@ -130,3 +130,42 @@ than as research; corroborate figures before promoting one to a `critical` rule.
 Beyond the Backlog — Building products for developing markets, March 2026.
 https://beyondthebacklog.com/2026/03/18/building-products-for-developing-markets/
 Accessed 2026-08-17. Practitioner account, same caveat as above.
+
+### google-monk-skin-tone
+Google — Monk Skin Tone (MST) Scale and MST-E dataset.
+https://skintone.google/
+Accessed 2026-08-18. A ten-shade open scale developed with Dr Ellis Monk for
+computer-vision evaluation. Cited because it replaces the Fitzpatrick scale for
+this purpose — Fitzpatrick was built to predict sunburn risk and an IEEE study
+found it poorly predictive of skin tone, with little variance at the darker end.
+
+### gender-shades
+Buolamwini, J. and Gebru, T. — Gender Shades: Intersectional Accuracy Disparities
+in Commercial Gender Classification, PMLR 81, 2018.
+https://proceedings.mlr.press/v81/buolamwini18a.html
+Accessed 2026-08-18. Cited for the measured accuracy gap between lighter and
+darker skin tones in commercial vision systems — the finding that makes
+skin-tone-stratified evaluation a correctness requirement rather than an ethics
+appendix.
+
+### mlkit-face-detection
+Google — Detect faces with ML Kit on Android.
+https://developers.google.com/ml-kit/vision/face-detection/android
+Accessed 2026-08-18. Cited for on-device, fully offline face detection with
+minimal storage, and for its stated input floor of 480x360 pixels.
+
+### android-camerax
+Android Developers — CameraX.
+https://developer.android.com/training/camerax
+Accessed 2026-08-18. Cited as the recommended capture API for consistent image
+quality across a wide range of devices, and for
+`ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST` as the correct backpressure default
+when analysing frames in real time.
+
+### embrace-android-crash-tools
+Embrace — Best Android crash reporting tools.
+https://embrace.io/blog/best-android-crash-report-tools/
+Accessed 2026-08-18. Vendor-authored comparison, so treat the rankings as
+marketing. Cited only for the measured SDK footprints it reports — Crashlytics
+290KB, Sentry 380KB, Raygun 410KB, New Relic 1.4MB, Datadog 1.7MB — which are
+the numbers that matter when observability competes with a 15MB budget.

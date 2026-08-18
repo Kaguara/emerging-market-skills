@@ -14,7 +14,7 @@ rules:
       exists is not a budget, it is a description.
     evidence:
       - tier: field
-        source: Smile Identity — pan-African, 2017–2020
+        source: Smile Identity — pan-African, 2017–2021
         observation: >
           Integrating partners evaluated the mobile SDK on the megabytes it added
           to their own app before they evaluated what it did. Size was a gating

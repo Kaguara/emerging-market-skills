@@ -117,7 +117,7 @@ rules:
       report a live connection that carries no traffic to your origin.
     evidence:
       - tier: field
-        source: Smile Identity — pan-African, 2017–2020
+        source: Smile Identity — pan-African, 2017–2021
         observation: >
           Depleted prepaid bundles commonly resolve DNS and terminate TLS at an
           operator portal. The device reports online; every API call returns an

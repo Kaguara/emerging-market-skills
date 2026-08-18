@@ -1,0 +1,188 @@
+prefix: IDN
+
+rules:
+  - id: IDN-001
+    rule: Treat the phone number as a rented identifier, not as an identity.
+    severity: critical
+    applies_to: [android, ios, web, backend, sms]
+    detect: |
+      Phone number used as the primary key, the sole login factor, and the only
+      recovery channel. No concept of a number changing hands.
+    remedy: |
+      Key accounts on an internal identifier, treat the number as a verified
+      attribute that can change, and re-verify on a change. Prepaid SIMs are
+      recycled and reassigned, users carry several, and the number on the
+      account may now belong to someone else entirely.
+    evidence:
+      - tier: field
+        source: Juvo Mobile — 6 markets, Central & South America, 2015–2020
+        observation: >
+          Across prepaid-dominant markets, subscribers changed and held multiple
+          numbers routinely. A model treating one number as one person did not
+          survive contact with the subscriber base.
+
+  - id: IDN-002
+    rule: Give every identity-authority call an explicit deadline and a defined outcome at that deadline.
+    severity: critical
+    applies_to: [backend]
+    detect: |
+      Verification calls that poll indefinitely, inherit a default timeout, or
+      leave the user on a spinner while an upstream database is degraded. No
+      documented behaviour for "the authority did not answer".
+    remedy: |
+      Set a realistic cut-off per authority, decide in advance what happens when
+      it is hit — queue for retry, fall back to a secondary source, or fail the
+      check honestly — and tell the user which of those occurred. Never let an
+      upstream's degraded performance become an unbounded wait in your product.
+    evidence:
+      - tier: field
+        source: Smile Identity — pan-African, 2017–2021
+        observation: >
+          Several national ID databases were operated by government entities
+          whose uptime and latency could not be relied on. Designing around
+          intermittent and degraded authorities — rather than treating downtime
+          as an exception — was a core constraint of the product.
+
+  - id: IDN-003
+    rule: Publish upstream authority status to the people depending on it, in real time.
+    severity: critical
+    applies_to: [backend, web]
+    detect: |
+      An upstream outage is visible to you in logs and invisible to your
+      integrators and users, who experience it as your product being broken.
+    remedy: |
+      Expose per-authority status on a dashboard, and alert integrators by email
+      or SMS when one degrades. Where infrastructure is genuinely unreliable,
+      transparency is the thing that keeps an outage from being read as
+      incompetence — it protects trust that silence spends.
+    evidence:
+      - tier: field
+        source: Smile Identity — pan-African, 2017–2021
+        observation: >
+          Surfacing which ID authority was down, in a dashboard and in real-time
+          alerts, changed how customers experienced an outage. Honesty about
+          flaky upstream infrastructure protected the product's credibility
+          rather than damaging it.
+
+  - id: IDN-004
+    rule: Evaluate biometric capture stratified by skin tone, using the Monk Skin Tone scale.
+    severity: critical
+    applies_to: [android, ios, web, backend]
+    detect: |
+      A single aggregate accuracy number for face capture or matching. No
+      per-skin-tone breakdown. Evaluation against a vendor benchmark whose
+      composition you have not seen.
+    remedy: |
+      Report accuracy per MST band and treat a gap between bands as a defect,
+      not as a known limitation. Where an off-the-shelf model will not close
+      the gap, training on representative data is the remedy — that is a
+      correctness requirement, not an ethics appendix.
+    evidence:
+      - tier: field
+        source: Smile Identity — pan-African, 2017–2021
+        observation: >
+          Commercially available face models of the period performed materially
+          worse on darker skin tones, which for a pan-African product is the
+          entire user base. Closing that gap required investing in proprietary
+          models trained deliberately on darker skin tones.
+      - tier: published
+        source: gender-shades
+      - tier: published
+        source: google-monk-skin-tone
+
+  - id: IDN-005
+    rule: Gate capture quality on the device, before anything is uploaded.
+    severity: critical
+    applies_to: [android, ios, web]
+    detect: |
+      Frames uploaded to a server to find out whether they are usable. The user
+      discovers a bad capture after a round trip, then repeats it on the same
+      connection that made it slow.
+    remedy: |
+      Run detection and quality checks on device — ML Kit face detection is
+      offline and needs little storage — and only upload a frame that passed.
+      This removes a round trip from the retry loop, which is the difference
+      between two attempts and abandonment.
+    evidence:
+      - tier: vendor
+        source: mlkit-face-detection
+      - tier: field
+        source: Smile Identity — pan-African, 2017–2021
+        observation: >
+          Moving the model onto the device, close to the user, was necessary for
+          a capture flow that had to work on intermittent connections.
+
+  - id: IDN-006
+    rule: Design capture for a poor camera in poor light, and say what to fix.
+    severity: warning
+    applies_to: [android, ios, web]
+    detect: |
+      A capture screen that fails without saying why. Guidance written for a
+      good front camera in even indoor lighting. No handling of backlight,
+      low light, or a low-resolution sensor.
+    remedy: |
+      Detect the specific failure — too dark, backlit, face too small, out of
+      frame — and give one concrete instruction to correct it. Use CameraX so
+      capture behaves consistently across a wide device range, and hold to the
+      480x360 input floor rather than assuming a modern sensor.
+    evidence:
+      - tier: vendor
+        source: android-camerax
+      - tier: field
+        source: Smile Identity — pan-African, 2017–2021
+        observation: >
+          Selfie capture had to succeed on low-quality device cameras, in poor
+          lighting, for darker skin tones — three constraints that compound,
+          and that no single one of them predicts.
+
+  - id: IDN-007
+    rule: Never assume the OTP arrived.
+    severity: warning
+    applies_to: [android, ios, web, backend, sms]
+    detect: |
+      A signup flow whose only path forward is an SMS code, with no alternate
+      channel, no support route, and a resend that silently costs money.
+    remedy: |
+      Offer a second channel, allow a longer validity window than feels
+      necessary, show honest delivery state, and make resend safe to press — see
+      COST-003. SMS delivery across operators and routes is not reliable enough
+      to be a single point of failure on the path to your product.
+
+  - id: IDN-008
+    rule: Account recovery must not depend on one channel or one device.
+    severity: warning
+    applies_to: [android, ios, web, backend]
+    detect: |
+      Recovery available only via the registered SIM, or only from a device
+      already signed in. No path for a user whose phone was lost, stolen, or
+      whose number was reassigned.
+    remedy: |
+      Provide at least two independent recovery paths and a human-reviewed
+      route of last resort. Losing a phone is common; losing an account because
+      of it should not be.
+
+  - id: IDN-009
+    rule: Do not block onboarding on a document a legitimate user may not hold.
+    severity: warning
+    applies_to: [android, ios, web, backend]
+    detect: |
+      A required field for a document type that a substantial share of the
+      target population does not have — a formal address, a utility bill, a
+      passport, a tax number.
+    remedy: |
+      Accept the documents your users actually carry, allow alternatives, and
+      tier access by what has been verified so far rather than gating entry on
+      the strongest possible proof.
+
+  - id: IDN-010
+    rule: Assume the device is shared.
+    severity: warning
+    applies_to: [android, ios, web]
+    detect: |
+      Sessions that never expire, sensitive balances or personal data rendered
+      before any re-authentication, no visible sign-out, notification previews
+      showing account detail on the lock screen.
+    remedy: |
+      Make sign-out obvious, re-authenticate before showing sensitive detail,
+      keep previews generic, and scope "remember me" deliberately. One handset
+      is regularly used by several people in a household.

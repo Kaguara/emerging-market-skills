@@ -12,6 +12,11 @@ should be able to find out what happened to it.
 ## [Unreleased]
 
 ### Added
+- `identity-and-onboarding`, covering SIM churn, designing around unreliable
+  government ID authorities, status transparency as a trust surface, and
+  skin-tone-stratified evaluation of biometric capture using the Monk Skin Tone
+  scale.
+- Audit scripts for every skill, on a shared `tools/audit_lib.py`.
 - Six skills: `network-resilience`, `payload-budgets`,
   `low-end-device-performance`, `integration-cost-modeling`,
   `localization-and-literacy-ux`, and the `emerging-market-review` router.
@@ -25,6 +30,7 @@ should be able to find out what happened to it.
 - `COST-003` and `COST-004` are held at `warning` pending field evidence that
   would justify promoting them to `critical`. See the `TODO` markers in
   `skills/integration-cost-modeling/rules.yml`.
-- Skills 7–9 (`money-movement`, `identity-and-onboarding`,
-  `field-testing-and-telemetry`) are referenced by the router but not yet
-  written. Targeted for v0.2.0.
+- `money-movement` and `field-testing-and-telemetry` are referenced by the
+  router but not yet written. Targeted for v0.2.0.
+- Smile Identity attribution is dated 2017–2021 throughout; confirm the exact
+  range before release.

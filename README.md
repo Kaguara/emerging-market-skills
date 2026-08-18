@@ -46,9 +46,9 @@ Use emerging-market-review on this PR. Target market is Kenya, tier C Android.
 | [low-end-device-performance](skills/low-end-device-performance/) | Does it survive 2GB of RAM, an old SoC, and a tired battery? |
 | [integration-cost-modeling](skills/integration-cost-modeling/) | What does one user action cost — in SMS, API calls, tokens, and their data bundle? |
 | [localization-and-literacy-ux](skills/localization-and-literacy-ux/) | Does the interface survive translation, RTL, and a first-time smartphone user? |
+| [identity-and-onboarding](skills/identity-and-onboarding/) | SIM churn, unreliable government ID authorities, and face capture that works on darker skin in bad light. |
 
-Three more land in v0.2: `money-movement`, `identity-and-onboarding`, and
-`field-testing-and-telemetry`.
+Two more land in v0.2: `money-movement` and `field-testing-and-telemetry`.
 
 ## What a skill actually is
 
