@@ -48,28 +48,26 @@ Download `bundle.zip` from the [latest release][releases] and upload it in
 Settings → Capabilities → Skills. The bundle contains only `skills/`, which is
 all the web app needs.
 
-## Cursor
+## Codex, Cursor, Copilot, Gemini CLI, Aider, Windsurf, Zed
 
-Cursor reads rules from `.cursor/rules/`. The skills are plain markdown, so:
+These read [`AGENTS.md`](../AGENTS.md), the vendor-neutral instruction standard.
+Copy it to the root of your project:
 
 ```bash
-mkdir -p .cursor/rules
-for skill in emerging-market-skills/skills/*/; do
-  cp "$skill/SKILL.md" ".cursor/rules/$(basename "$skill").mdc"
-done
+curl -o AGENTS.md https://raw.githubusercontent.com/Kaguara/emerging-market-skills/main/AGENTS.md
 ```
 
-Cursor's frontmatter uses `description` and `globs`. The `description` field
-carries over as-is; add `alwaysApply: false` so rules load contextually rather
-than on every request, which is the behaviour these are written for.
+If you already have an AGENTS.md, append it instead — the file supports nesting,
+and the copy nearest the code being edited wins.
 
-## GitHub Copilot
+The tradeoff is real and worth knowing: `AGENTS.md` is a single flat file, so
+every rule is always in context rather than loading on demand. You get all 65
+rules as compact tables without the worked code, the tradeoff discussion, or the
+evidence. It is the rules, not the judgment. For the full skills with
+progressive disclosure, use Claude Code.
 
-Copilot reads repository-wide instructions from
-`.github/copilot-instructions.md`. It does not support per-skill loading, so
-concatenating all nine would blow the context. Copy in the one or two skills
-that match what you are building, or paste the rules tables — the rules survive
-compression better than the prose does.
+`AGENTS.md` is generated from the same `rules.yml` files the skills use, and CI
+fails if it drifts, so it is never behind.
 
 ## Any tool with a system prompt
 

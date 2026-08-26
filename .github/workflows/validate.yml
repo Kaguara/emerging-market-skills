@@ -28,6 +28,14 @@ jobs:
       - name: Validate skills
         run: python3 tools/validate_skills.py
 
+      # AGENTS.md is generated from rules.yml. If a rule changed and the file
+      # was not regenerated, every non-Claude agent reads a stale rule set.
+      - name: Check AGENTS.md is current
+        run: |
+          python3 tools/build_agents_md.py
+          git diff --exit-code AGENTS.md \
+            || (echo "AGENTS.md is stale — run: python3 tools/build_agents_md.py"; exit 1)
+
   links:
     name: Links
     runs-on: ubuntu-latest
