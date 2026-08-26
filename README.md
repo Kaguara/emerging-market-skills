@@ -23,7 +23,7 @@ Claude Code:
 ```
 
 ```
-/plugin install emerging-market-skills
+/plugin install emerging-market-skills@kaguara
 ```
 
 Skills load on demand — Claude reads each description and pulls in the full

@@ -9,7 +9,7 @@ either amended in place with the change noted here, or superseded by a new ID
 with `superseded_by` set on the old one. Anyone who cited a rule in a code review
 should be able to find out what happened to it.
 
-## [Unreleased]
+## [0.1.0] — 2026-08-26
 
 ### Added
 - `identity-and-onboarding`, covering SIM churn, designing around unreliable

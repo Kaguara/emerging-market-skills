@@ -1,10 +1,10 @@
 {
-  "name": "emerging-market-skills",
+  "name": "kaguara",
   "owner": {
     "name": "Antony Kaguara",
     "url": "https://github.com/Kaguara"
   },
-  "description": "Agent skills for building software that works on the other five billion phones.",
+  "description": "Antony Kaguara's open-source agent skills.",
   "version": "0.1.0",
   "plugins": [
     {
