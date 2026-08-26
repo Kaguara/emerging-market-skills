@@ -32,6 +32,7 @@ fails, and the user who taps again.
 | NET-008 | Honour metered-connection and data-saver signals. | warning |
 | NET-009 | Declare a conflict-resolution policy for every entity that syncs. | warning |
 | NET-010 | Batch and compress; minimise round trips over payload elegance. | advisory |
+| NET-011 | Size a partner integration for their slowest component, not for their API's stated limits. | critical |
 
 Full detection criteria and remedies in [`rules.yml`](rules.yml).
 

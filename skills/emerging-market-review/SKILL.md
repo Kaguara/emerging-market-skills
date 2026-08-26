@@ -51,7 +51,7 @@ Write the assumption into the report. It is what makes the findings checkable.
 ## Step 2 — dispatch
 
 Load the specialist skills that apply. Most reviews need three or four, not all
-eight.
+six.
 
 | If the artifact involves | Load |
 |---|---|
@@ -60,9 +60,13 @@ eight.
 | Lists, feeds, client-side computation, background work, memory | `low-end-device-performance` |
 | SMS, push, USSD, WhatsApp, third-party APIs, AI or inference calls | `integration-cost-modeling` |
 | Any user-facing string, layout, form, or icon | `localization-and-literacy-ux` |
-| Payments, wallets, balances, disbursement, reconciliation | `money-movement` |
 | Signup, login, OTP, KYC, sessions, account recovery | `identity-and-onboarding` |
-| Analytics, monitoring, experiments, or "how would we know?" | `field-testing-and-telemetry` |
+
+Two dimensions have no skill yet — **money movement** (wallets, disbursement,
+reconciliation) and **field telemetry** (how you would know any of this in
+production). Both are planned for v0.2. Until then, review them on judgment and
+label the findings `judgment` under REVIEW-002 rather than citing a rule that
+does not exist.
 
 Read the artifact against each loaded skill's `rules.yml`. Where a rule's
 `detect` criteria are met, confirm it in the code before recording it —
@@ -117,8 +121,8 @@ to launch in a market where users are offline for hours has a problem. Weight
 findings by stage, and say which of the two you are reporting.
 
 **The absence of a rule is not permission.** These skills cover network,
-payload, device, cost, language, money, identity, and measurement. They do not
-cover everything. When something looks wrong and no rule fits, say so and label
+payload, device, cost, language, and identity. They do not cover everything, and
+money movement and field telemetry are not covered at all yet. When something looks wrong and no rule fits, say so and label
 it `judgment` under REVIEW-002 — an honest unsourced observation is more useful
 than a rule stretched to cover a case it was not written for.
 

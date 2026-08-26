@@ -79,6 +79,14 @@ rules:
       Generate width variants, serve WebP or AVIF with a fallback, set explicit
       dimensions to prevent layout shift, and lazy-load anything below the fold.
       Images are usually the largest line in the budget and the easiest to cut.
+    evidence:
+      - tier: field
+        source: Juvo Mobile — 6 markets, Central & South America, 2015–2020
+        observation: >
+          Choosing vector assets and deliberately simple art direction was a
+          judgment call made with a strong designer rather than a measured
+          experiment. It showed up as consistent image loading across markets in
+          testing and QA; it was never A/B tested against a heavier alternative.
 
   - id: SIZE-006
     rule: Cap first-load JavaScript on the critical path at 200KB compressed.

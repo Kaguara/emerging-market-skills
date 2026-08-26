@@ -4,10 +4,8 @@
     "name": "Antony Kaguara",
     "url": "https://github.com/Kaguara"
   },
-  "metadata": {
-    "description": "Agent skills for building software that works on the other five billion phones.",
-    "version": "0.1.0"
-  },
+  "description": "Agent skills for building software that works on the other five billion phones.",
+  "version": "0.1.0",
   "plugins": [
     {
       "name": "emerging-market-skills",

@@ -137,3 +137,24 @@ rules:
       Instrument the paid calls, compare actual against modelled, and treat a
       material gap as a bug. Usage patterns in a new market rarely match the
       assumptions, and retry behaviour on poor connections is the usual reason.
+
+  - id: COST-010
+    rule: Find out whether the operator will zero-rate your traffic before you spend a quarter optimising bytes.
+    severity: warning
+    applies_to: [android, ios, web]
+    detect: |
+      A byte-reduction programme underway with nobody having established whether
+      the traffic can be zero-rated or reverse-billed in the target market.
+    remedy: |
+      Ask early, because the answer reorders your engineering backlog. Zero-rating
+      removes the user's data cost entirely, which does not make payload budgets
+      irrelevant — latency and device constraints still bind — but it does change
+      which failures actually cost you users, and therefore what to build first.
+    evidence:
+      - tier: field
+        source: Juvo Mobile — 6 markets, Central & South America, 2015–2020
+        observation: >
+          The telco white-listed the app, so subscribers did not need a data
+          bundle to use it. Offline capability that had been built as a core
+          requirement turned out to fire rarely, because the constraint it was
+          designed for had been removed commercially rather than technically.

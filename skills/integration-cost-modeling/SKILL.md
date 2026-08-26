@@ -32,6 +32,7 @@ design input that determines the architecture.
 | COST-007 | Decide fail-open or fail-closed for every paid dependency, in writing. | warning |
 | COST-008 | Serve from a region near the user and count egress. | warning |
 | COST-009 | Re-check unit costs against real usage within a month of launch. | warning |
+| COST-010 | Find out whether the operator will zero-rate your traffic before you spend a quarter optimising bytes. | warning |
 
 Full detection criteria and remedies in [`rules.yml`](rules.yml).
 

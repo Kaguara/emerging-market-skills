@@ -77,6 +77,12 @@ rules:
         observation: >
           In a wallet, a balance shown without provenance is worse than no balance.
           Users who could not tell cached from confirmed stopped trusting both.
+      - tier: field
+        source: Juvo Mobile — 6 markets, Central & South America, 2015–2020
+        observation: >
+          During a network interruption the app continued to show the last cached
+          telco balance while disabling purchase. Read stayed available, write was
+          honestly blocked, and the product still felt usable rather than broken.
 
   - id: NET-005
     rule: Set explicit request timeouts sized for the target network, not the default.
@@ -160,3 +166,24 @@ rules:
       high-latency link, round trips dominate; six 40KB requests are worse than
       one 240KB request. Enable compression, and consider a binary protocol where
       volume justifies the tooling cost.
+
+  - id: NET-011
+    rule: Size a partner integration for their slowest component, not for their API's stated limits.
+    severity: critical
+    applies_to: [backend]
+    detect: |
+      Capacity planning that treats a partner's documented rate limit as the real
+      ceiling. Load testing against the gateway rather than against the system
+      behind it. No agreed launch ramp with the partner.
+    remedy: |
+      Establish the throughput of the partner's core system, not the wrapper in
+      front of it. Queue on your side, apply backpressure, circuit-break on their
+      degradation, and agree a ramp rather than arriving at full volume on day one.
+    evidence:
+      - tier: field
+        source: Juvo Mobile — 6 markets, Central & South America, 2015–2020
+        observation: >
+          A telco partner's billing and fulfilment APIs sat behind a modern API
+          wrapper, which made them look like a modern service. The systems behind
+          it were not instrumented for our launch curve and became a bottleneck
+          during scale-up. The wrapper hid the constraint rather than removing it.
