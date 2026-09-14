@@ -204,9 +204,11 @@ Static checks find structure; the device finds the truth:
 - **Switch the emulator and the reference device to three-button navigation**
   and walk every screen. `adb shell cmd overlay enable
   com.android.internal.systemui.navbar.threebutton` on an API 35+ image. Any
-  bottom-anchored control you built yourself — tab bar, composer, sticky CTA,
-  bottom sheet — must clear the bar with the inset the platform reports, not a
-  number you chose.
+  edge-anchored control you built yourself — tab bar, composer, sticky CTA —
+  must clear the bar with the inset the platform reports, not a number you
+  chose. Rotate to landscape too: the three-button bar moves to a side, and a
+  fix that only reads the bottom inset fails there. A modal that is not
+  edge-to-edge is already clear of the bar; do not "fix" it.
 - **Segment your field metrics by device tier.** A p50 that pools tier A and
   tier C users reports a device population that does not exist. See
   `field-testing-and-telemetry`.
