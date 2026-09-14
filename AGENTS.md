@@ -96,6 +96,7 @@ The reference device has 1–2GB of RAM shared with the operating system, a CPU 
 | PERF-007 | Cap background work, wake locks, and polling. | warning |
 | PERF-008 | Animate only compositor-friendly properties, and honour reduced motion. | advisory |
 | PERF-009 | Give any on-device inference or heavy computation a server or static fallback. | advisory |
+| PERF-010 | Test every bottom-anchored control with three-button navigation and the OEM skin of the reference device. | warning |
 
 ## Integration cost modeling
 
