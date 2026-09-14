@@ -32,6 +32,7 @@ handles touch.
 | PERF-007 | Cap background work, wake locks, and polling. | warning |
 | PERF-008 | Animate only compositor-friendly properties, and honour reduced motion. | advisory |
 | PERF-009 | Give any on-device inference or heavy computation a server or static fallback. | advisory |
+| PERF-010 | Test every bottom-anchored control with three-button navigation and the OEM skin of the reference device. | warning |
 
 Full detection criteria and remedies in [`rules.yml`](rules.yml).
 
@@ -168,6 +169,16 @@ tier C SoC blocks, heats, drains, and often fails to load at all in the memory
 available. If it is worth having, it is worth a server fallback — see
 `integration-cost-modeling` for what that call costs per user.
 
+**Assuming the framework's inset handling covers your custom control.** The
+default tab bar pads for the system navigation bar; the one you wrote to match
+the design does not, and nothing tells you. From Android 15 the app is
+edge-to-edge whether you asked for it or not, so a fixed-height bar at the
+bottom of the screen is now *under* the navigation bar. On gesture navigation
+that is a pill over the labels. On three-button navigation — the factory
+default on OPPO, Tecno, Infinix and most of the tier C fleet — it is a 48dp
+strip of Back / Home / Recents covering the tabs, and every tap goes to the OS.
+It passes on the team's phones because the team's phones use gestures.
+
 **Treating jank as cosmetic.** Dropped frames during scroll are read as
 brokenness, not slowness, and brokenness is what gets uninstalled. A consistent
 30fps beats a variable 60.
@@ -190,6 +201,12 @@ Static checks find structure; the device finds the truth:
   Android Studio's profiler or a Chrome trace over USB against real hardware.
 - **Watch memory across a long session.** Scroll a feed for five minutes. Flat is
   correct; a staircase means something is retained per item.
+- **Switch the emulator and the reference device to three-button navigation**
+  and walk every screen. `adb shell cmd overlay enable
+  com.android.internal.systemui.navbar.threebutton` on an API 35+ image. Any
+  bottom-anchored control you built yourself — tab bar, composer, sticky CTA,
+  bottom sheet — must clear the bar with the inset the platform reports, not a
+  number you chose.
 - **Segment your field metrics by device tier.** A p50 that pools tier A and
   tier C users reports a device population that does not exist. See
   `field-testing-and-telemetry`.
@@ -198,6 +215,7 @@ Static checks find structure; the device finds the truth:
 
 - PERF-001, PERF-002 — field, gethomespace (Kenya/US, 2020–2022); vendor,
   Android (Go edition).
+- PERF-010 — field, Wowzi (Kenya, 2026).
 - PERF-004 — vendor, web.dev Core Web Vitals.
 
 Full citations in [`docs/SOURCES.md`](../../docs/SOURCES.md).
