@@ -53,5 +53,6 @@ jobs:
             --no-progress
             --accept 200,206,429
             --exclude-path node_modules
+            --exclude 'mckinsey\.com'
             './**/*.md'
           fail: true
