@@ -179,6 +179,14 @@ default on OPPO, Tecno, Infinix and most of the tier C fleet — it is a 48dp
 strip of Back / Home / Recents covering the tabs, and every tap goes to the OS.
 It passes on the team's phones because the team's phones use gestures.
 
+The second trap is the fix looking wrong. Pad the inset and the strip under
+your labels reads as wasted space on an iPhone, and the tempting patch is to
+keep the padding only for three-button Android. Don't: that puts the home
+indicator back through the labels on every other phone. The band is the
+platform's. If it looks empty, your control's content box is taller than it
+needs to be — tighten that, and use `minHeight` so scaled text grows the bar
+instead of overflowing back into the inset.
+
 **Treating jank as cosmetic.** Dropped frames during scroll are read as
 brokenness, not slowness, and brokenness is what gets uninstalled. A consistent
 30fps beats a variable 60.
