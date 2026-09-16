@@ -9,6 +9,14 @@ either amended in place with the change noted here, or superseded by a new ID
 with `superseded_by` set on the old one. Anyone who cited a rule in a code review
 should be able to find out what happened to it.
 
+## [Unreleased]
+
+### Added
+- `low-end-device-performance` PERF-010: test every bottom-anchored control
+  with three-button navigation and the OEM skin of the reference device. Field
+  evidence from Kenya, 2026: an edge-to-edge app whose custom tab bar sat under
+  the system navigation bar on an OPPO A58 and was unreachable.
+
 ## [0.1.0] — 2026-08-26
 
 ### Added
