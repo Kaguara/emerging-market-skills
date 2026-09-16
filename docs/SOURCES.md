@@ -10,6 +10,24 @@ Add a source by appending a `### key` heading with a URL and an access date.
 Keys are lowercase kebab-case and stable once published. Paraphrase what you
 cite; do not paste source text into a skill.
 
+## When a source stops resolving
+
+Sources are never deleted — a rule cited them and the record of what was read
+matters. Instead, add one `Status:` line directly under the URL. The validator
+reads it.
+
+- `Status: unreachable-from-ci — YYYY-MM-DD — <reason>` — the page is live and
+  the citation still holds, but the link checker cannot fetch it (HTTP/2
+  quirks, bot blocking, rate limits). Exclude the domain in
+  `.github/workflows/links.yml`. The evidence is unaffected.
+- `Status: gone — YYYY-MM-DD — <reason>` — the publisher removed it and no
+  archive exists. Exclude the domain. **A gone source cannot be the only
+  evidence behind a `critical` rule**; the validator fails the build if it is.
+  Re-evidence the rule or lower its severity.
+
+Check the Wayback Machine before marking anything `gone`; if a snapshot exists,
+swap the URL for the archive link and leave the status alone.
+
 ---
 
 ## Vendor documentation
@@ -117,6 +135,7 @@ than as feature removal.
 ### mckinsey-brands-emerging-markets
 McKinsey — Building brands in emerging markets.
 https://www.mckinsey.com/capabilities/growth-marketing-and-sales/our-insights/building-brands-in-emerging-markets
+Status: unreachable-from-ci — 2026-09-14 — server fails HTTP/2 negotiation with lychee; page is live.
 Accessed 2026-08-17. Mostly out of scope for these skills, which are technical.
 Cited only where brand and trust have a direct product-surface consequence.
 
@@ -129,10 +148,9 @@ than as research; corroborate figures before promoting one to a `critical` rule.
 ### beyondthebacklog-developing-markets
 Beyond the Backlog — Building products for developing markets, March 2026.
 https://beyondthebacklog.com/2026/03/18/building-products-for-developing-markets/
-Accessed 2026-08-17. Practitioner account, same caveat as above.
-**Page removed by the publisher (HTTP 410 as of 2026-09-16); no Wayback snapshot exists.**
-Kept for the record of what was read; the domain is excluded from the link check. Any rule
-that cites only this source should be re-evidenced before its next revision.
+Status: gone — 2026-09-16 — HTTP 410 from the publisher; no Wayback snapshot exists.
+Accessed 2026-08-17. Practitioner account, same caveat as above. Kept for the
+record of what was read.
 
 ### google-monk-skin-tone
 Google — Monk Skin Tone (MST) Scale and MST-E dataset.
