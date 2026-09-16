@@ -130,6 +130,9 @@ than as research; corroborate figures before promoting one to a `critical` rule.
 Beyond the Backlog — Building products for developing markets, March 2026.
 https://beyondthebacklog.com/2026/03/18/building-products-for-developing-markets/
 Accessed 2026-08-17. Practitioner account, same caveat as above.
+**Page removed by the publisher (HTTP 410 as of 2026-09-16); no Wayback snapshot exists.**
+Kept for the record of what was read; the domain is excluded from the link check. Any rule
+that cites only this source should be re-evidenced before its next revision.
 
 ### google-monk-skin-tone
 Google — Monk Skin Tone (MST) Scale and MST-E dataset.
