@@ -54,5 +54,6 @@ jobs:
             --accept 200,206,429
             --exclude-path node_modules
             --exclude 'mckinsey\.com'
+            --exclude 'beyondthebacklog\.com'
             './**/*.md'
           fail: true
