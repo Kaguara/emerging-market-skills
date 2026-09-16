@@ -61,8 +61,8 @@ If you already have an AGENTS.md, append it instead — the file supports nestin
 and the copy nearest the code being edited wins.
 
 The tradeoff is real and worth knowing: `AGENTS.md` is a single flat file, so
-every rule is always in context rather than loading on demand. You get all 65
-rules as compact tables without the worked code, the tradeoff discussion, or the
+every rule is always in context rather than loading on demand. You get every
+rule as a compact table row without the worked code, the tradeoff discussion, or the
 evidence. It is the rules, not the judgment. For the full skills with
 progressive disclosure, use Claude Code.
 

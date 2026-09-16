@@ -35,25 +35,3 @@ jobs:
           python3 tools/build_agents_md.py
           git diff --exit-code AGENTS.md \
             || (echo "AGENTS.md is stale — run: python3 tools/build_agents_md.py"; exit 1)
-
-  links:
-    name: Links
-    runs-on: ubuntu-latest
-    # Advisory only: external sites go down, rate-limit CI runners, and block
-    # datacentre IPs. A broken link should not stop a contributor from merging a
-    # good rule, but someone should see it.
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Check links
-        uses: lycheeverse/lychee-action@v2
-        with:
-          args: >-
-            --no-progress
-            --accept 200,206,429
-            --exclude-path node_modules
-            --exclude 'mckinsey\.com'
-            --exclude 'beyondthebacklog\.com'
-            './**/*.md'
-          fail: true

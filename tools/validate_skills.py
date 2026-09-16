@@ -68,16 +68,37 @@ class Report:
         print("{} warning(s). Passed.".format(len(self.warnings)))
 
 
-def load_source_keys(report: Report) -> Set[str]:
-    """Citation keys are the `### key` headings in docs/SOURCES.md."""
+SOURCE_STATUSES = {"unreachable-from-ci", "gone"}
+STATUS_RE = re.compile(r"^Status:\s*([a-z-]+)\s+—")
+
+
+def load_source_keys(report: Report) -> Tuple[Set[str], Set[str]]:
+    """Citation keys are the `### key` headings in docs/SOURCES.md.
+
+    Returns (all keys, keys marked `Status: gone`). A gone source is kept for
+    the record but can no longer be the only thing holding up a critical rule.
+    """
     if not SOURCES_FILE.exists():
         report.error("docs/SOURCES.md", "missing; published and vendor evidence cannot be resolved")
-        return set()
-    keys = set()
-    for line in SOURCES_FILE.read_text(encoding="utf-8").splitlines():
+        return set(), set()
+    keys: Set[str] = set()
+    gone: Set[str] = set()
+    current = ""
+    for lineno, line in enumerate(SOURCES_FILE.read_text(encoding="utf-8").splitlines(), 1):
         if line.startswith("### "):
-            keys.add(line[4:].strip())
-    return keys
+            current = line[4:].strip()
+            keys.add(current)
+            continue
+        match = STATUS_RE.match(line)
+        if match and current:
+            status = match.group(1)
+            if status not in SOURCE_STATUSES:
+                report.error("docs/SOURCES.md:{}".format(lineno),
+                             "unknown status '{}'; use one of {}".format(
+                                 status, ", ".join(sorted(SOURCE_STATUSES))))
+            elif status == "gone":
+                gone.add(current)
+    return keys, gone
 
 
 def parse_frontmatter(path: Path, report: Report) -> Dict[str, object]:
@@ -144,6 +165,7 @@ def check_rules(
     seen_ids: Dict[str, str],
     seen_prefixes: Dict[str, str],
     source_keys: Set[str],
+    gone_sources: Set[str],
 ) -> int:
     rules_path = skill_dir / "rules.yml"
     if not rules_path.exists():
@@ -224,7 +246,7 @@ def check_rules(
         if isinstance(text, str) and len(text.split()) > 40:
             report.warn(where, "rule text is long; state it in one testable sentence")
 
-        check_evidence(rule, severity, kind, where, report, source_keys)
+        check_evidence(rule, severity, kind, where, report, source_keys, gone_sources)
 
     check_table_drift(skill_dir, file_ids, report)
     return len(rules)
@@ -237,6 +259,7 @@ def check_evidence(
     where: str,
     report: Report,
     source_keys: Set[str],
+    gone_sources: Set[str],
 ) -> None:
     evidence = rule.get("evidence")
 
@@ -251,6 +274,8 @@ def check_evidence(
     if kind == "process":
         report.warn(where, "process rules do not normally carry evidence; "
                            "consider 'kind: empirical'")
+
+    live_sources = 0
 
     if not isinstance(evidence, list):
         report.error(where, "evidence must be a list")
@@ -273,6 +298,7 @@ def check_evidence(
             continue
 
         if tier == "field":
+            live_sources += 1
             if not item.get("observation"):
                 report.error(where, "field evidence requires an 'observation' stating what was seen")
             if "—" not in str(source) and "-" not in str(source):
@@ -281,6 +307,15 @@ def check_evidence(
             if source not in source_keys:
                 report.error(where, "evidence source '{}' has no '### {}' entry in "
                                     "docs/SOURCES.md".format(source, source))
+            elif source in gone_sources:
+                report.warn(where, "evidence source '{}' is marked gone in "
+                                   "docs/SOURCES.md".format(source))
+            else:
+                live_sources += 1
+
+    if severity == "critical" and live_sources == 0:
+        report.error(where, "critical rule's only evidence is a source marked gone; "
+                            "re-evidence it or lower the severity")
 
 
 def check_table_drift(skill_dir: Path, rule_ids: Set[str], report: Report) -> None:
@@ -315,7 +350,7 @@ def main() -> None:
     if not SKILLS_DIR.is_dir():
         sys.exit("No skills/ directory found at {}".format(SKILLS_DIR))
 
-    source_keys = load_source_keys(report)
+    source_keys, gone_sources = load_source_keys(report)
     seen_ids: Dict[str, str] = {}
     seen_prefixes: Dict[str, str] = {}
     rule_count = 0
@@ -334,7 +369,8 @@ def main() -> None:
         if data:
             check_frontmatter(skill_md, data, skill_dir, report)
         check_length(skill_md, report)
-        rule_count += check_rules(skill_dir, report, seen_ids, seen_prefixes, source_keys)
+        rule_count += check_rules(skill_dir, report, seen_ids, seen_prefixes,
+                                  source_keys, gone_sources)
 
     report.print_and_exit(len(skill_dirs), rule_count)
 

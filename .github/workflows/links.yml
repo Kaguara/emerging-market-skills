@@ -1,0 +1,39 @@
+name: links
+
+# Link rot is not a property of a contribution. This runs on a schedule so rot
+# is found weekly, and on pull requests only when a file that carries external
+# links changed — so a rule PR never goes red for a page someone else took down.
+on:
+  schedule:
+    - cron: "0 6 * * 1"          # Mondays 06:00 UTC
+  pull_request:
+    paths:
+      - docs/SOURCES.md
+      - README.md
+      - docs/INSTALL.md
+      - CONTRIBUTING.md
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  links:
+    name: Links
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Exclusions correspond to `Status:` lines in docs/SOURCES.md. Add the
+      # status line first; the exclusion is the consequence, not the record.
+      - name: Check links
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: >-
+            --no-progress
+            --accept 200,206,429
+            --exclude-path node_modules
+            --exclude 'mckinsey\.com'
+            --exclude 'beyondthebacklog\.com'
+            './**/*.md'
+          fail: true

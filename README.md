@@ -30,7 +30,7 @@ Skills load on demand — Claude reads each description and pulls in the full
 skill only when the work matches.
 
 **Using Codex, Cursor, Copilot, Gemini CLI, Aider, Windsurf, or Zed?** They read
-[`AGENTS.md`](AGENTS.md) — one flat file with all 65 rules, generated from the
+[`AGENTS.md`](AGENTS.md) — one flat file with every rule, generated from the
 same source and kept current by CI. Drop it at your project root. Full
 instructions for every tool in [docs/INSTALL.md](docs/INSTALL.md).
 
