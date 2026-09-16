@@ -187,3 +187,36 @@ rules:
           wrapper, which made them look like a modern service. The systems behind
           it were not instrumented for our launch curve and became a bottleneck
           during scale-up. The wrapper hid the constraint rather than removing it.
+
+  - id: NET-012
+    rule: Never let a third party's connectivity probe decide whether your app may call your API.
+    severity: critical
+    applies_to: [android, ios]
+    detect: |
+      A request path that short-circuits on a reachability flag — NetInfo's
+      `isInternetReachable`, Android's NET_CAPABILITY_VALIDATED, `navigator.onLine`
+      plus a probe — before the request is attempted. A reachability probe left at
+      its default target (Google's generate_204 or the OS captive-portal check).
+      Acceptance testing only on networks where that probe passes.
+    remedy: |
+      Point the reachability probe at an endpoint you own — a cheap unauthenticated
+      no-op on your API, not an aggregated health check — so "reachable" means
+      "can reach us". Then treat the result as a hint for UI and retry timing,
+      never as a veto: refuse a request only when the device reports no network
+      interface at all, and let the request itself be the test. Verify by pointing
+      the OS captive-portal URL at a black hole and confirming the app still works.
+    evidence:
+      - tier: field
+        source: Wowzi — Kenya, September 2026
+        observation: >
+          The creator app's request interceptor rejected every call as "Limited
+          internet connectivity" whenever NetInfo reported the internet
+          unreachable. On Android that flag is the OS verdict, which is a fetch of
+          google.com/generate_204. A phone tether in the office reproduced it:
+          the API answered 200 from the same laptop in about a second while
+          Google's probe timed out, and the app was dead — 80 rejections in one
+          cold start, "couldn't load earnings", nothing tappable — while every
+          other app on the device worked. Carriers that throttle or block Google's
+          endpoints produce the same outage for everyone on them. Probing our own
+          /health and dropping the veto took the same network from 80 rejections
+          to zero; the change was thirty lines, the outage would have been total.

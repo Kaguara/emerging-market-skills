@@ -63,6 +63,7 @@ The connection is not slow. It is intermittent, asymmetric, and dishonest — it
 | NET-009 | Declare a conflict-resolution policy for every entity that syncs. | warning |
 | NET-010 | Batch and compress; minimise round trips over payload elegance. | advisory |
 | NET-011 | Size a partner integration for their slowest component, not for their API's stated limits. | critical |
+| NET-012 | Never let a third party's connectivity probe decide whether your app may call your API. | critical |
 
 ## Payload budgets
 
