@@ -33,6 +33,7 @@ fails, and the user who taps again.
 | NET-009 | Declare a conflict-resolution policy for every entity that syncs. | warning |
 | NET-010 | Batch and compress; minimise round trips over payload elegance. | advisory |
 | NET-011 | Size a partner integration for their slowest component, not for their API's stated limits. | critical |
+| NET-012 | Never let a third party's connectivity probe decide whether your app may call your API. | critical |
 
 Full detection criteria and remedies in [`rules.yml`](rules.yml).
 
@@ -213,6 +214,15 @@ happened.
 seconds. The user force-quits, losing any in-memory queue, and reopens to find
 their action gone. Every indeterminate state needs a deadline and an exit.
 
+**Asking Google whether you can reach your own server.** The connectivity
+libraries default their reachability probe to `generate_204`, and Android's own
+"validated" verdict is the same fetch. On a link where that probe is slow or
+blocked — a carrier that throttles Google, a tether, a portal — the flag says
+"unreachable" while your API answers in a second. If a request path checks that
+flag before trying, your app is the only one on the phone that stops working.
+Probe an endpoint you own, and never let any probe veto a request: the request
+is the test.
+
 **Treating a cached balance as authoritative.** Cached values are for display.
 The moment one is used to authorise a transaction, staleness becomes an
 overdraft. See `money-movement` for the server-authoritative pattern.
@@ -240,6 +250,11 @@ Static analysis will not tell you whether it works. Also:
   finds bugs. See `field-testing-and-telemetry`.
 - **Kill the process during a queued write.** On Android, `adb shell am kill`.
   The intent must be there on restart.
+- **Black-hole the OS connectivity probe and use the app.** On the emulator,
+  `adb shell settings put global captive_portal_https_url http://10.255.255.1/`
+  (and the `http`/`fallback` keys), cycle Wi-Fi, disable mobile data so the
+  unvalidated network is the default. The app must still reach your API. Reset
+  the keys afterwards.
 - **Instrument the ambiguous case.** Track time-to-confirmation, queue depth,
   dead-letter rate, and duplicate-intent rate segmented by effective connection
   type. A duplicate-intent rate above zero means NET-003 is not holding
@@ -255,5 +270,6 @@ Static analysis will not tell you whether it works. Also:
 - NET-006 — vendor, AWS Architecture Blog on exponential backoff and jitter.
 - NET-007 — field, Smile Identity (pan-African, 2017–2020).
 - NET-008 — vendor, Chrome `Save-Data` and Network Information API.
+- NET-012 — field, Wowzi (Kenya, 2026).
 
 Full citations in [`docs/SOURCES.md`](../../docs/SOURCES.md).

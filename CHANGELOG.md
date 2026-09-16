@@ -16,6 +16,10 @@ should be able to find out what happened to it.
   with three-button navigation and the OEM skin of the reference device. Field
   evidence from Kenya, 2026: an edge-to-edge app whose custom tab bar sat under
   the system navigation bar on an OPPO A58 and was unreachable.
+- `network-resilience` NET-012: never let a third party's connectivity probe
+  decide whether the app may call your API. Field evidence from Kenya, 2026: an
+  app that gated every request on NetInfo's Google-based reachability flag was
+  dead on a network where its own API answered in a second.
 
 ## [0.1.0] — 2026-08-26
 
