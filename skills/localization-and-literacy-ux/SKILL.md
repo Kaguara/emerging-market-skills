@@ -32,6 +32,7 @@ have been caught by a machine.
 | LOC-008 | Language is an explicit, persisted user choice, not an inference. | warning |
 | LOC-009 | Do not hardcode the shape of names, addresses, or phone numbers. | warning |
 | LOC-010 | Error messages name the cause and the next action, in plain translated language. | advisory |
+| LOC-011 | Render an unknown value as a placeholder, never as zero. | warning |
 
 Full detection criteria and remedies in [`rules.yml`](rules.yml).
 
@@ -68,6 +69,14 @@ read slowly in the interface language, a spoken prompt or a photograph carries
 the same information faster and with less error. Treat them as legitimate
 primary affordances where the flow is critical, rather than as accommodations
 bolted on at the end.
+
+**A number on screen is a sentence, and zero is the wrong one.** The default
+that turns a missing value into `0` is written in the data layer, by someone
+thinking about types, and it is read on the home screen by someone thinking
+about their money. "0" says the balance is empty, the jobs are gone, the rating
+is bottom. "—" says the app does not know yet, and it says it without a word to
+translate or read. Keep the value nullable all the way to the view; the cost is
+a type parameter, and the alternative is the app accusing itself.
 
 ## Worked patterns
 
@@ -184,6 +193,10 @@ silence — they simply never use the feature.
 **Right-to-left added in a later release.** It is not a translation task, it is a
 layout rewrite. Logical properties on day one are free.
 
+**`?? 0` on the way to a label.** It silences a type error at the boundary and
+tells the user their earnings are zero. The value was never zero; it was never
+loaded. Absence and emptiness need different glyphs.
+
 ## Verification
 
 ```bash
@@ -212,5 +225,6 @@ Then look at it:
 - LOC-002 — vendor, ICU MessageFormat.
 - LOC-003 — vendor, Unicode CLDR.
 - LOC-005 — published, Google Next Billion Users.
+- LOC-011 — field, Wowzi (Kenya, 2026).
 
 Full citations in [`docs/SOURCES.md`](../../docs/SOURCES.md).

@@ -138,3 +138,28 @@ rules:
       Map every user-visible failure to a translated message with a concrete
       next step. Untranslated vendor errors reaching the interface is the most
       common leak, and it surfaces at the least recoverable moment.
+
+  - id: LOC-011
+    rule: Render an unknown value as a placeholder, never as zero.
+    severity: warning
+    applies_to: [android, ios, web]
+    detect: |
+      A counter, balance, rating or metric whose type is non-nullable with a zero
+      default, so an unloaded, failed or offline value is indistinguishable from a
+      real zero. Badges and tab counts fed from `data?.count ?? 0`.
+    remedy: |
+      Let the value be nullable all the way to the view and render an em dash or an
+      equivalent placeholder when it is absent. Zero is a claim about the user's
+      money, work or standing; absence is a claim about the app. Say which one you
+      mean, in the one language rule the placeholder needs no translation for.
+    evidence:
+      - tier: field
+        source: Wowzi — Kenya, September 2026
+        observation: >
+          Offline, the creator app's home and jobs screens showed zero earnings,
+          zero active jobs and a zero rating, because every counter defaulted to
+          zero when the query had no data. Reviewers looking at the screenshots
+          read it as the creator having lost their work rather than as the phone
+          being offline — and a creator reading the same screen has no reason to
+          reach a kinder conclusion. Showing an em dash for an unknown count made
+          the same screens unambiguous without a word of copy.

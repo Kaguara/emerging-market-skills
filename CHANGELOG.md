@@ -20,6 +20,31 @@ should be able to find out what happened to it.
   decide whether the app may call your API. Field evidence from Kenya, 2026: an
   app that gated every request on NetInfo's Google-based reachability flag was
   dead on a network where its own API answered in a second.
+- `network-resilience` NET-013: key every persisted cache to a confirmed
+  account identity and fence it when the session ends. Field evidence from
+  Kenya, 2026: a debounced cache write landed after logout, and a query client
+  swapped without remounting kept serving the previous account's data.
+- `network-resilience` NET-014: decide queue-or-reject per intent and enforce it
+  at one chokepoint. Field evidence from Kenya, 2026: per-screen offline
+  handling produced a stack of identical connectivity toasts on a cold start.
+- `network-resilience` NET-015: distinguish "no data yet" from "stale data" and
+  label cached data with its age. Field evidence from Kenya, 2026: screens
+  offline showed "No jobs yet" to users who had jobs.
+- `identity-and-onboarding` IDN-011: never write credentials, identity
+  documents, or payout details into an offline cache. Field evidence from
+  Kenya, 2026: a default cache persister would have written KYC status, payout
+  details and social access tokens to unencrypted device storage.
+- `payload-budgets` SIZE-011: upload media on commit, not on selection, and
+  cancel a superseded upload. Field evidence from Kenya, 2026: uploading at pick
+  time charged every discarded take to a prepaid bundle and let a late response
+  attach a replaced file.
+- `localization-and-literacy-ux` LOC-011: render an unknown value as a
+  placeholder, never as zero. Field evidence from Kenya, 2026: offline counters
+  defaulting to zero read as lost earnings and lost work.
+
+### Changed
+- `network-resilience` NET-012 carries a second field observation: the corrected
+  rule shipped and held on airplane mode, a tether, and congested mobile data.
 
 ## [0.1.0] — 2026-08-26
 
