@@ -21,16 +21,26 @@ rules:
           force-quit rather than wait.
 
   - id: NET-002
-    rule: Queue every state-changing request durably before attempting it.
+    rule: Queue every state-changing request durably before attempting it, or refuse it — decide per intent, and enforce the decision in one place.
     severity: critical
     applies_to: [android, ios, web]
     detect: |
       A handler calls the API directly and holds the user's intent only in memory
       or in component state. Killing the app mid-request loses the action.
+      Equally: offline handling written per screen, so some mutations queue, some
+      fail with a raw network error, and some appear to succeed and silently
+      discard the intent. Network-failure notices raised by individual call sites,
+      producing a burst of identical messages when a screen fires several
+      requests at once.
     remedy: |
-      Write the intent to durable local storage, acknowledge it in the UI, and
-      drain the queue from a background worker — WorkManager on Android,
-      Background Sync or a persisted outbox on web.
+      Decide per intent whether losing it costs the user money, time, or a trip.
+      Where it does: write the intent to durable local storage, acknowledge it in
+      the UI, and drain the queue from a background worker — WorkManager on
+      Android, Background Sync or a persisted outbox on web. Where it does not,
+      refusing is a legitimate answer, but it is still a decision: implement it in
+      the transport layer, with one typed error and one plain message, and
+      de-duplicate the notice so a screen with eight failed requests says one
+      thing. Either way the screens do not each invent their own answer.
     evidence:
       - tier: vendor
         source: android-workmanager
@@ -40,6 +50,18 @@ rules:
           Field agents submitted verifications from sites with no usable signal.
           An in-memory retry lost the submission whenever Android reclaimed the
           process, which on 1–2GB devices was routine.
+      - tier: field
+        source: Wowzi — Kenya, September 2026
+        observation: >
+          The opposite end of the same rule. A creator app had no single place
+          where an offline write was decided, and a cold start on a dead network
+          produced a stack of identical connectivity toasts, one per in-flight
+          request, over screens that were themselves empty. The product decision
+          was to refuse rather than queue — nothing a creator does offline is
+          worth replaying hours later — but until that refusal lived in the
+          request interceptor it was eight different guesses at network state.
+          Moving it to one chokepoint and de-duplicating the notice reduced it to
+          one honest message and deleted the per-screen code rather than fixing it.
 
   - id: NET-003
     rule: Every state-changing request carries a client-generated idempotency key.
@@ -264,34 +286,6 @@ rules:
           the old account's data. Neither showed up in single-account testing,
           which is how the feature had been tested; both are one shared phone away
           from showing a creator someone else's payouts.
-
-  - id: NET-014
-    rule: Decide queue-or-reject per intent, and enforce that decision at one chokepoint.
-    severity: warning
-    applies_to: [android, ios, web]
-    detect: |
-      Offline handling written per screen: some mutations queue, some fail with a
-      raw network error, some appear to succeed and silently discard the intent.
-      Network-failure toasts raised by individual call sites, producing a burst of
-      identical messages when a screen fires several requests at once.
-    remedy: |
-      Decide once, per intent, whether losing it costs the user money or a trip
-      (NET-002) — then implement that decision in the transport layer, not in the
-      screens. Reject offline writes with a single typed error carrying one plain
-      message, report transport failures from one place, and de-duplicate the
-      notice so a screen with eight failed requests says one thing. Screens that
-      need a different answer opt in explicitly rather than each inventing one.
-    evidence:
-      - tier: field
-        source: Wowzi — Kenya, September 2026
-        observation: >
-          Before the offline work the creator app had no single place where an
-          offline write was refused, and a cold start on a dead network produced a
-          stack of identical connectivity toasts, one per in-flight request, over
-          screens that were themselves empty. Moving the refusal into the request
-          interceptor and de-duplicating the notice reduced that to one honest
-          message; the per-screen code that had been guessing at network state was
-          deleted rather than fixed.
 
   - id: NET-015
     rule: Distinguish "no data yet" from "stale data", and label cached data with its age.

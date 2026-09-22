@@ -53,7 +53,7 @@ The connection is not slow. It is intermittent, asymmetric, and dishonest — it
 | ID | Rule | Severity |
 |---|---|---|
 | NET-001 | Render from local state first; never block first paint on a network call. | critical |
-| NET-002 | Queue every state-changing request durably before attempting it. | critical |
+| NET-002 | Queue every state-changing request durably before attempting it, or refuse it — decide per intent, and enforce the decision in one place. | critical |
 | NET-003 | Every state-changing request carries a client-generated idempotency key. | critical |
 | NET-004 | Pending, queued, and failed states are visible and honest in the UI. | critical |
 | NET-005 | Set explicit request timeouts sized for the target network, not the default. | warning |
@@ -65,7 +65,6 @@ The connection is not slow. It is intermittent, asymmetric, and dishonest — it
 | NET-011 | Size a partner integration for their slowest component, not for their API's stated limits. | critical |
 | NET-012 | Never let a third party's connectivity probe decide whether your app may call your API. | critical |
 | NET-013 | Key every persisted cache to a confirmed account identity, and fence it when the session ends. | critical |
-| NET-014 | Decide queue-or-reject per intent, and enforce that decision at one chokepoint. | warning |
 | NET-015 | Distinguish "no data yet" from "stale data", and label cached data with its age. | warning |
 
 ## Payload budgets

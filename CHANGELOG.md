@@ -24,9 +24,6 @@ should be able to find out what happened to it.
   account identity and fence it when the session ends. Field evidence from
   Kenya, 2026: a debounced cache write landed after logout, and a query client
   swapped without remounting kept serving the previous account's data.
-- `network-resilience` NET-014: decide queue-or-reject per intent and enforce it
-  at one chokepoint. Field evidence from Kenya, 2026: per-screen offline
-  handling produced a stack of identical connectivity toasts on a cold start.
 - `network-resilience` NET-015: distinguish "no data yet" from "stale data" and
   label cached data with its age. Field evidence from Kenya, 2026: screens
   offline showed "No jobs yet" to users who had jobs.
@@ -43,6 +40,15 @@ should be able to find out what happened to it.
   defaulting to zero read as lost earnings and lost work.
 
 ### Changed
+- `network-resilience` NET-002 is amended: the rule now covers the decision
+  itself — queue or refuse, decided per intent and enforced in one place —
+  rather than only the queueing half. Refusing an offline write was always a
+  legitimate answer for intents not worth replaying; what was missing was that
+  it is a decision, and that it belongs in the transport layer. Second field
+  observation added from Kenya, 2026: per-screen offline handling produced a
+  stack of identical connectivity toasts on a cold start, and moving the refusal
+  to one chokepoint reduced it to one message. No ID was issued for this; it is
+  NET-002's scope, not a new rule.
 - `network-resilience` NET-012 carries a second field observation: the corrected
   rule shipped and held on airplane mode, a tether, and congested mobile data.
 

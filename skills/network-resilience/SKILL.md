@@ -23,7 +23,7 @@ fails, and the user who taps again.
 | ID | Rule | Severity |
 |---|---|---|
 | NET-001 | Render from local state first; never block first paint on a network call. | critical |
-| NET-002 | Queue every state-changing request durably before attempting it. | critical |
+| NET-002 | Queue every state-changing request durably before attempting it, or refuse it — decide per intent, and enforce the decision in one place. | critical |
 | NET-003 | Every state-changing request carries a client-generated idempotency key. | critical |
 | NET-004 | Pending, queued, and failed states are visible and honest in the UI. | critical |
 | NET-005 | Set explicit request timeouts sized for the target network, not the default. | warning |
@@ -35,7 +35,6 @@ fails, and the user who taps again.
 | NET-011 | Size a partner integration for their slowest component, not for their API's stated limits. | critical |
 | NET-012 | Never let a third party's connectivity probe decide whether your app may call your API. | critical |
 | NET-013 | Key every persisted cache to a confirmed account identity, and fence it when the session ends. | critical |
-| NET-014 | Decide queue-or-reject per intent, and enforce that decision at one chokepoint. | warning |
 | NET-015 | Distinguish "no data yet" from "stale data", and label cached data with its age. | warning |
 
 Full detection criteria and remedies in [`rules.yml`](rules.yml).
@@ -45,9 +44,9 @@ Full detection criteria and remedies in [`rules.yml`](rules.yml).
 **Offline-first is not free, and it is not always right.** A durable queue costs
 storage, a sync engine, and install size — and install size costs you installs
 (see `payload-budgets`). The test is whether the user's intent survives the app
-being killed. A "like" does not need to; a loan repayment does. Apply NET-002
-to actions where losing the intent costs the user money, time, or a trip, and
-let the rest fail loudly and cheaply.
+being killed. A "like" does not need to; a loan repayment does. Queue the
+actions where losing the intent costs the user money, time, or a trip, and let
+the rest fail loudly and cheaply — from one place, not eight (NET-002).
 
 **Caching trades staleness for availability, and the exchange rate depends on
 the data.** A film recommendation may be a week stale with no harm. A wallet
@@ -303,8 +302,9 @@ their work is gone, at the moment they are least able to check.
 
 **Every screen inventing its own offline behaviour.** One queues, one fails
 loudly, one fails silently, and eight of them raise the same toast at once on a
-cold start. Offline is a transport concern with product decisions attached —
-make the decision per intent and enforce it in one place.
+cold start. Refusing an offline write is a legitimate answer to NET-002 — for
+most intents it is the right one — but it is a decision to make per intent and
+implement once, not a gap for each screen to fill.
 
 ## Verification
 
@@ -338,13 +338,13 @@ Static analysis will not tell you whether it works. Also:
 
 - NET-001, NET-003 — field, Juvo Mobile (6 markets, Central & South America,
   2015–2020).
-- NET-002 — field, gethomespace (Kenya/US, 2020–2022); vendor, Android
-  WorkManager.
+- NET-002 — field, gethomespace (Kenya/US, 2020–2022) and Wowzi (Kenya,
+  2026); vendor, Android WorkManager.
 - NET-004 — field, IBM Research Africa (Kenya, 2013–2014).
 - NET-006 — vendor, AWS Architecture Blog on exponential backoff and jitter.
 - NET-007 — field, Smile Identity (pan-African, 2017–2020).
 - NET-008 — vendor, Chrome `Save-Data` and Network Information API.
 - NET-012 — field, Wowzi (Kenya, 2026).
-- NET-013, NET-014, NET-015 — field, Wowzi (Kenya, 2026).
+- NET-013, NET-015 — field, Wowzi (Kenya, 2026).
 
 Full citations in [`docs/SOURCES.md`](../../docs/SOURCES.md).
