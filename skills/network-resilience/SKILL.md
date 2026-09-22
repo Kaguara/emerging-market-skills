@@ -23,7 +23,7 @@ fails, and the user who taps again.
 | ID | Rule | Severity |
 |---|---|---|
 | NET-001 | Render from local state first; never block first paint on a network call. | critical |
-| NET-002 | Queue every state-changing request durably before attempting it. | critical |
+| NET-002 | Queue every state-changing request durably before attempting it, or refuse it — decide per intent, and enforce the decision in one place. | critical |
 | NET-003 | Every state-changing request carries a client-generated idempotency key. | critical |
 | NET-004 | Pending, queued, and failed states are visible and honest in the UI. | critical |
 | NET-005 | Set explicit request timeouts sized for the target network, not the default. | warning |
@@ -34,6 +34,8 @@ fails, and the user who taps again.
 | NET-010 | Batch and compress; minimise round trips over payload elegance. | advisory |
 | NET-011 | Size a partner integration for their slowest component, not for their API's stated limits. | critical |
 | NET-012 | Never let a third party's connectivity probe decide whether your app may call your API. | critical |
+| NET-013 | Key every persisted cache to a confirmed account identity, and fence it when the session ends. | critical |
+| NET-015 | Distinguish "no data yet" from "stale data", and label cached data with its age. | warning |
 
 Full detection criteria and remedies in [`rules.yml`](rules.yml).
 
@@ -42,9 +44,9 @@ Full detection criteria and remedies in [`rules.yml`](rules.yml).
 **Offline-first is not free, and it is not always right.** A durable queue costs
 storage, a sync engine, and install size — and install size costs you installs
 (see `payload-budgets`). The test is whether the user's intent survives the app
-being killed. A "like" does not need to; a loan repayment does. Apply NET-002
-to actions where losing the intent costs the user money, time, or a trip, and
-let the rest fail loudly and cheaply.
+being killed. A "like" does not need to; a loan repayment does. Queue the
+actions where losing the intent costs the user money, time, or a trip, and let
+the rest fail loudly and cheaply — from one place, not eight (NET-002).
 
 **Caching trades staleness for availability, and the exchange rate depends on
 the data.** A film recommendation may be a week stale with no harm. A wallet
@@ -70,6 +72,23 @@ failure. Jitter is not politeness; it is the thing that makes recovery possible.
 telemetry, and background sync is drawn from a prepaid bundle. Treat background
 data as a budget you are spending on the user's behalf, and be able to state the
 per-session number (see `integration-cost-modeling`).
+
+**A cache is an account's data, not the app's.** The moment you persist
+anything, the phone holds one user's data across another user's session, and
+these markets are where a phone is most likely to be shared, lent, or resold.
+The boundary that matters is not logout — it is the confirmed account id. Write
+nothing to disk before the server has told you whose data it is, drop the cache
+the instant a session ends, and make the sensitive categories unpersistable by
+construction rather than by remembering (IDN-011). The failure is silent, it
+never appears in single-account testing, and its blast radius is someone else's
+earnings.
+
+**"Nothing cached" and "nothing exists" are different sentences.** Collapsing
+the two tells a user offline that their work is gone. Decide the ordered states
+once — loading, offline-without-data, failed-without-data, empty, content — and
+derive them from whether data is present, not from the connectivity flag. Be
+honest in the other direction too: cached content without a fetched-at label is
+a lie of omission the first time it is a day old.
 
 ## Worked patterns
 
@@ -193,6 +212,46 @@ driving every expensive decision, rather than each component deciding alone.
 `saveData` is a user instruction, not a hint; there is no tier above `minimal`
 when it is set.
 
+### A cache boundary that survives a shared phone
+
+Satisfies NET-013, NET-015, IDN-011. The persister is created for a confirmed
+account id and closed before the cache is cleared; the provider is remounted so
+no observer outlives the session.
+
+```ts
+// Persist only what is safe on a device someone else may hold (IDN-011).
+const PERSISTABLE = ['jobs', 'earnings', 'messages', 'notifications'];
+export const shouldPersist = (key: readonly unknown[]) =>
+  PERSISTABLE.includes(String(key[0]));
+
+export const persisterFor = (accountId: string) => {
+  const storage = new MMKV({ id: `cache.${accountId}` });
+  let closed = false;
+  const write = debounce((state: string) => {
+    if (closed) return;              // a scheduled write must not outlive the session
+    storage.set('cache', state);
+  }, 1000);
+  return {
+    persist: (state: string) => write(state),
+    close: () => { closed = true; write.cancel(); },
+    remove: () => { closed = true; write.cancel(); storage.clearAll(); },
+  };
+};
+
+// The session boundary: a new client per session, and a remount so old
+// observers cannot serve the previous account.
+const { generation, client } = useSessionQueryClient(accountId);
+return (
+  <QueryClientProvider key={generation} client={client}>
+    {children}
+  </QueryClientProvider>
+);
+```
+
+Swapping `client` on an existing provider is not enough: mounted observers keep
+the client they subscribed to, and they will happily render the previous
+account's data until something forces them to re-render.
+
 ## Anti-patterns
 
 **Retrying on the connectivity-restored event with no jitter.** Every client on
@@ -232,6 +291,21 @@ architecture, and architecture chosen before you know which actions matter
 produces a 14MB app that syncs everything and installs on nobody's phone.
 Identify the two or three intents that must survive, queue those, and grow.
 
+**Clearing the cache on logout and calling it a boundary.** The write was
+already scheduled. It lands a second later, after the clear, and the next person
+to open the app sees the last person's balance. Close the writer before you
+clear, and test it by logging out and straight back in as someone else.
+
+**Treating an empty cache as an empty account.** "No jobs yet" to a creator who
+has eleven jobs and no signal is not a cosmetic bug; it is the app telling them
+their work is gone, at the moment they are least able to check.
+
+**Every screen inventing its own offline behaviour.** One queues, one fails
+loudly, one fails silently, and eight of them raise the same toast at once on a
+cold start. Refusing an offline write is a legitimate answer to NET-002 — for
+most intents it is the right one — but it is a decision to make per intent and
+implement once, not a gap for each screen to fill.
+
 ## Verification
 
 ```bash
@@ -264,12 +338,13 @@ Static analysis will not tell you whether it works. Also:
 
 - NET-001, NET-003 — field, Juvo Mobile (6 markets, Central & South America,
   2015–2020).
-- NET-002 — field, gethomespace (Kenya/US, 2020–2022); vendor, Android
-  WorkManager.
+- NET-002 — field, gethomespace (Kenya/US, 2020–2022) and Wowzi (Kenya,
+  2026); vendor, Android WorkManager.
 - NET-004 — field, IBM Research Africa (Kenya, 2013–2014).
 - NET-006 — vendor, AWS Architecture Blog on exponential backoff and jitter.
 - NET-007 — field, Smile Identity (pan-African, 2017–2020).
 - NET-008 — vendor, Chrome `Save-Data` and Network Information API.
 - NET-012 — field, Wowzi (Kenya, 2026).
+- NET-013, NET-015 — field, Wowzi (Kenya, 2026).
 
 Full citations in [`docs/SOURCES.md`](../../docs/SOURCES.md).

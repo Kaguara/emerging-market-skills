@@ -21,16 +21,26 @@ rules:
           force-quit rather than wait.
 
   - id: NET-002
-    rule: Queue every state-changing request durably before attempting it.
+    rule: Queue every state-changing request durably before attempting it, or refuse it — decide per intent, and enforce the decision in one place.
     severity: critical
     applies_to: [android, ios, web]
     detect: |
       A handler calls the API directly and holds the user's intent only in memory
       or in component state. Killing the app mid-request loses the action.
+      Equally: offline handling written per screen, so some mutations queue, some
+      fail with a raw network error, and some appear to succeed and silently
+      discard the intent. Network-failure notices raised by individual call sites,
+      producing a burst of identical messages when a screen fires several
+      requests at once.
     remedy: |
-      Write the intent to durable local storage, acknowledge it in the UI, and
-      drain the queue from a background worker — WorkManager on Android,
-      Background Sync or a persisted outbox on web.
+      Decide per intent whether losing it costs the user money, time, or a trip.
+      Where it does: write the intent to durable local storage, acknowledge it in
+      the UI, and drain the queue from a background worker — WorkManager on
+      Android, Background Sync or a persisted outbox on web. Where it does not,
+      refusing is a legitimate answer, but it is still a decision: implement it in
+      the transport layer, with one typed error and one plain message, and
+      de-duplicate the notice so a screen with eight failed requests says one
+      thing. Either way the screens do not each invent their own answer.
     evidence:
       - tier: vendor
         source: android-workmanager
@@ -40,6 +50,18 @@ rules:
           Field agents submitted verifications from sites with no usable signal.
           An in-memory retry lost the submission whenever Android reclaimed the
           process, which on 1–2GB devices was routine.
+      - tier: field
+        source: Wowzi — Kenya, September 2026
+        observation: >
+          The opposite end of the same rule. A creator app had no single place
+          where an offline write was decided, and a cold start on a dead network
+          produced a stack of identical connectivity toasts, one per in-flight
+          request, over screens that were themselves empty. The product decision
+          was to refuse rather than queue — nothing a creator does offline is
+          worth replaying hours later — but until that refusal lived in the
+          request interceptor it was eight different guesses at network state.
+          Moving it to one chokepoint and de-duplicating the notice reduced it to
+          one honest message and deleted the per-screen code rather than fixing it.
 
   - id: NET-003
     rule: Every state-changing request carries a client-generated idempotency key.
@@ -220,3 +242,74 @@ rules:
           endpoints produce the same outage for everyone on them. Probing our own
           /health and dropping the veto took the same network from 80 rejections
           to zero; the change was thirty lines, the outage would have been total.
+      - tier: field
+        source: Wowzi — Kenya, September 2026 (shipped build)
+        observation: >
+          The rule held once it shipped. A QA build carrying the corrected rule —
+          offline declared only when the device reports no interface at all, a
+          transport failure treated as "slow" rather than as "offline", and the
+          request itself left as the test — was exercised on airplane mode, on a
+          tether, and on ordinary congested mobile data. Requests that the old
+          probe would have vetoed completed; nothing that genuinely had no network
+          hung waiting to find out. The residual work was all presentation — what
+          to show while a request is slow — and none of it was connectivity
+          detection.
+
+  - id: NET-013
+    rule: Key every persisted cache to a confirmed account identity, and fence it when the session ends.
+    severity: critical
+    applies_to: [android, ios, web]
+    detect: |
+      A cache persister, MMKV/AsyncStorage store, or IndexedDB database opened at
+      app start under a fixed key, before anyone has logged in. A logout path that
+      clears storage without cancelling the debounced or throttled write that is
+      already scheduled. A query client swapped by prop or context on logout rather
+      than remounted, leaving the previous account's observers subscribed.
+    remedy: |
+      Derive the storage key from the account id the server confirmed, not from a
+      token, a local profile guess, or an anonymous default — and write nothing to
+      disk until that id exists. On session end, close the persister first so a
+      pending write cannot land after the clear, then discard the client entirely
+      by remounting the provider, so no observer survives into the next session.
+      Verify by logging in as A, logging out, logging in as B, and reading what is
+      on disk and on screen before any request returns.
+    evidence:
+      - tier: field
+        source: Wowzi — Kenya, September 2026
+        observation: >
+          Adding offline persistence to the creator app leaked data between
+          accounts twice, in two ways that both looked correct. The persister
+          debounced its writes, so a write scheduled before logout landed after the
+          cache was cleared and the next account opened the app on the previous
+          creator's earnings. Separately, replacing the query client on logout
+          without remounting the provider left the old observers alive and serving
+          the old account's data. Neither showed up in single-account testing,
+          which is how the feature had been tested; both are one shared phone away
+          from showing a creator someone else's payouts.
+
+  - id: NET-015
+    rule: Distinguish "no data yet" from "stale data", and label cached data with its age.
+    severity: warning
+    applies_to: [android, ios, web]
+    detect: |
+      A list that renders its empty state ("No jobs yet") when the query is paused
+      offline with nothing cached, or its error state when cached data is on
+      screen. A cached screen that looks identical to a freshly loaded one. A
+      pull-to-refresh that spins and resolves silently while offline.
+    remedy: |
+      Give every list and detail body one ordered state machine — loading, then
+      offline-without-data, then error-without-data, then empty, then content —
+      and derive the offline and error cases from "the request is paused or failed
+      AND there is no cached data", never from connectivity alone. When cached
+      data is shown, say when it was fetched; when a refresh over that data fails,
+      say the refresh failed rather than replacing the content with an error.
+    evidence:
+      - tier: field
+        source: Wowzi — Kenya, September 2026
+        observation: >
+          The first offline build of the creator app showed "No jobs yet" and
+          "KES 0" to creators who were simply offline, because every screen
+          collapsed "nothing cached" into "nothing exists". Reviewers repeatedly
+          read the screenshots as data loss rather than as absence. The same
+          screens with an explicit offline-without-data state and a fetched-at
+          label on cached content read correctly with no change to the data layer.
