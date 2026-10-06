@@ -32,6 +32,7 @@ congested cell**. Every other number flatters you.
 | SIZE-008 | Load secondary features on demand rather than at install or first paint. | warning |
 | SIZE-009 | Never block first paint on a web font. | warning |
 | SIZE-010 | Budget the installed storage footprint, not only the download. | advisory |
+| SIZE-011 | Upload media when the user commits, not when they pick, and cancel a superseded upload. | warning |
 
 Full detection criteria and remedies in [`rules.yml`](rules.yml).
 
@@ -68,6 +69,13 @@ size is the budget; execution cost is the reason the budget is low. See
 it varies by an order of magnitude between markets, and quoting it in a design
 review changes the conversation from aesthetics to arithmetic. Work it out with
 `integration-cost-modeling` and put it in the repo next to the budget.
+
+**Uploads are the budget too, and they are the part you did not measure.** A
+download budget is enforced in CI and argued over in review; the bytes a user
+sends leave no artifact to weigh, so nobody weighs them. In any flow where
+people pick media, they pick more than they send — a take they look at and
+redo, a photo they swap. Uploading at pick time charges every discarded attempt
+to a prepaid bundle. Upload at submit, and the bytes match the intent.
 
 ## Worked patterns
 
@@ -189,6 +197,11 @@ dependency graph you now maintain.
 **Optimising images while shipping four font weights.** Effort should follow the
 byte histogram. Build the histogram first, then cut the largest line.
 
+**Starting the upload in the picker's callback.** It feels responsive: by the
+time they hit send, it is done. In practice the user swaps the attachment twice,
+you have paid for three videos to send one, and on a slow link a response from
+the attachment they replaced can still arrive and be applied.
+
 ## Verification
 
 ```bash
@@ -217,5 +230,6 @@ Then measure rather than trust:
   Billion Users.
 - SIZE-003 — field, Juvo Mobile (6 markets, Central & South America, 2015–2020).
 - SIZE-010 — vendor, Android (Go edition).
+- SIZE-011 — field, Wowzi (Kenya, 2026).
 
 Full citations in [`docs/SOURCES.md`](../../docs/SOURCES.md).

@@ -32,6 +32,7 @@ every reason is upstream of anything the user did.
 | IDN-008 | Account recovery must not depend on one channel or one device. | warning |
 | IDN-009 | Do not block onboarding on a document a legitimate user may not hold. | warning |
 | IDN-010 | Assume the device is shared. | warning |
+| IDN-011 | Never write credentials, identity documents, or payout details into an offline cache. | critical |
 
 Full detection criteria and remedies in [`rules.yml`](rules.yml).
 
@@ -77,6 +78,16 @@ connection, and be told it was too dark has spent thirty seconds and some of
 their data bundle to learn something the device already knew. ML Kit runs
 offline with minimal storage; there is no longer a good reason for the quality
 gate to be remote.
+
+**Offline support quietly widens what the device holds.** IDN-010 says assume
+the phone is shared; a cache persister is how that assumption gets expensive.
+The moment a product decides to work offline, something starts writing whatever
+passed through it to disk — and by default that includes the KYC submission, the
+ID photo, the payout account and the social access tokens. None of it is needed
+offline: a user who cannot reach the network cannot submit KYC or change a bank
+account either. Decide what may be persisted in one predicate, default it to no,
+and keep identity out of it. The cached copy outlives the session, the logout
+and often the owner (NET-013).
 
 ## Worked patterns
 
@@ -208,6 +219,12 @@ do not retry three times; they leave.
 field in a market of descriptive addresses is a wall in front of a legitimate
 customer. Tier access by what has been verified instead.
 
+**Persisting the whole cache because offline was the requirement.** The feature
+asked for jobs and messages to survive a dead network. What shipped also wrote
+the user's KYC status, bank details and OAuth tokens into unencrypted storage on
+a phone that gets lent out. Nothing in the requirement asked for that, and no
+reviewer sees it unless the allowlist is a file they can read.
+
 ## Verification
 
 ```bash
@@ -240,5 +257,6 @@ Then measure the things static analysis cannot see:
   Skin Tone Scale.
 - IDN-005 — vendor, ML Kit face detection.
 - IDN-006 — vendor, Android CameraX.
+- IDN-011 — field, Wowzi (Kenya, 2026).
 
 Full citations in [`docs/SOURCES.md`](../../docs/SOURCES.md).

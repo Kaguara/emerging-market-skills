@@ -53,7 +53,7 @@ The connection is not slow. It is intermittent, asymmetric, and dishonest — it
 | ID | Rule | Severity |
 |---|---|---|
 | NET-001 | Render from local state first; never block first paint on a network call. | critical |
-| NET-002 | Queue every state-changing request durably before attempting it. | critical |
+| NET-002 | Queue every state-changing request durably before attempting it, or refuse it — decide per intent, and enforce the decision in one place. | critical |
 | NET-003 | Every state-changing request carries a client-generated idempotency key. | critical |
 | NET-004 | Pending, queued, and failed states are visible and honest in the UI. | critical |
 | NET-005 | Set explicit request timeouts sized for the target network, not the default. | warning |
@@ -64,6 +64,8 @@ The connection is not slow. It is intermittent, asymmetric, and dishonest — it
 | NET-010 | Batch and compress; minimise round trips over payload elegance. | advisory |
 | NET-011 | Size a partner integration for their slowest component, not for their API's stated limits. | critical |
 | NET-012 | Never let a third party's connectivity probe decide whether your app may call your API. | critical |
+| NET-013 | Key every persisted cache to a confirmed account identity, and fence it when the session ends. | critical |
+| NET-015 | Distinguish "no data yet" from "stale data", and label cached data with its age. | warning |
 
 ## Payload budgets
 
@@ -81,6 +83,7 @@ Bytes cost money that the user paid in advance, arrive over a link that drops, a
 | SIZE-008 | Load secondary features on demand rather than at install or first paint. | warning |
 | SIZE-009 | Never block first paint on a web font. | warning |
 | SIZE-010 | Budget the installed storage footprint, not only the download. | advisory |
+| SIZE-011 | Upload media when the user commits, not when they pick, and cancel a superseded upload. | warning |
 
 ## Low end device performance
 
@@ -132,6 +135,7 @@ The interface will be read in a language whose words are longer than English's, 
 | LOC-008 | Language is an explicit, persisted user choice, not an inference. | warning |
 | LOC-009 | Do not hardcode the shape of names, addresses, or phone numbers. | warning |
 | LOC-010 | Error messages name the cause and the next action, in plain translated language. | advisory |
+| LOC-011 | Render an unknown value as a placeholder, never as zero. | warning |
 
 ## Identity and onboarding
 
@@ -149,6 +153,7 @@ The identifier is rented: prepaid SIMs are recycled, users carry several, and th
 | IDN-008 | Account recovery must not depend on one channel or one device. | warning |
 | IDN-009 | Do not block onboarding on a document a legitimate user may not hold. | warning |
 | IDN-010 | Assume the device is shared. | warning |
+| IDN-011 | Never write credentials, identity documents, or payout details into an offline cache. | critical |
 
 
 ---
